@@ -10,6 +10,7 @@ const knownTokens = []
 
 router.get('/login', (req, res, next) => {
   res.set('Cache-Control', 'no-store')
+  if (req.query['redirect_to']) res.cookie('redirect_to', req.query['redirect_to'])
   Promise.race([sleep(3000), generateSecureRandomString(50)]).then(r => {
     if (!r) {
       res.status(500).send({ error: 'could not generate random string within specified timeout' })
@@ -68,8 +69,10 @@ router.get('/login/callback', (req, res, next) => {
       res.status(400).send({ error: 'failed to invoke api' })
       return
     }
+    const redirectTo = req.cookies['redirect_to'] || ''
     res.cookie('mod_session', state)
-    res.redirect(`https://mod.acrylicstyle.xyz/?authstate=logged_in&username=${me['username']}`)
+    res.cookie('redirect_to', null)
+    res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=logged_in&username=${me['username']}`)
   })
 })
 

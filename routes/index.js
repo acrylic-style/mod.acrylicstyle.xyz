@@ -1,35 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path')
-const { generateSecureRandomString, sleep, sessions } = require('../src/util')
+const { getAccessToken } = require('../src/util')
 const osu = require('../src/osu')
 
 router.get('/', (req, res, next) => {
-    res.sendFile(path.resolve("static/index.html"))
+    res.sendFile(path.resolve('static/index.html'))
 })
 
 router.get('/requests', (req, res, next) => {
-    res.sendFile(path.resolve("static/requests.html"))
+    const token = getAccessToken(req.cookies)
+    if (!token) return res.redirect('/login?redirect_to=requests')
+    res.sendFile(path.resolve('static/requests.html'))
 })
 
 router.get('/modded', (req, res, next) => {
-    res.sendFile(path.resolve("static/modded.html"))
+    res.sendFile(path.resolve('static/modded.html'))
 })
 
 router.get('/me', (req, res, next) => {
-    if (!req.cookies) {
-        res.status(403).send({ error: 'login_required', reason: 'no_cookie' })
-        return
-    }
-    const session = req.cookies['mod_session']
-    const token = sessions[session]
-    if (!session || !token) {
-        res.status(403).send({ error: 'login_required', reason: 'missing_session_or_token' })
-        return
-    }
-    osu(token['access_token']).me().then(data => {
+    const token = getAccessToken(req.cookies)
+    if (!token) return res.status(403).send({ error: 'login_required' })
+    osu(token).me().then(data => {
         if (data['status_code'] !== 200) {
-            res.status(403).send({ error: 'login_required', reason: 'expired_session' })
+            res.status(403).send({ error: 'login_required' })
             return
         }
         res.send(data)

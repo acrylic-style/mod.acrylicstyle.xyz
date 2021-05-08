@@ -15,7 +15,7 @@ const query = parseQuery(location.href.replace(/.*?\?(.*)/, '$1'))
 const authStatus = query['authstate']
 if (authStatus === 'logged_in') {
     const username = query['username'] || '???'
-    M.toast({ text: `You have successfully logged in as ${username}!` })
+    M.toast({ text: `Hello ${username}!` })
 } else if (authStatus === 'logged_out') {
     M.toast({ text: 'You have successfully logged out!' })
 }
