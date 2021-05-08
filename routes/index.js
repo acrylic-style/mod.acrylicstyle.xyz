@@ -15,7 +15,7 @@ router.get('/requests', (req, res, next) => {
 })
 
 router.get('/modded', (req, res, next) => {
-    res.sendFile(path.resolve('static/modded.html'))
+    res.sendFile(path.resolve('static/queue.html'))
 })
 
 router.get('/me', (req, res, next) => {
