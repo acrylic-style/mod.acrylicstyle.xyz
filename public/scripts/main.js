@@ -36,15 +36,15 @@ fetch('/me').then(async res => {
     if (res.status !== 200 || data['error']) {
         logInOutElement.setAttribute('data-tooltip', 'Login')
         // noinspection HtmlUnknownTarget
-        logInOutElement.innerHTML = '<a href="/login" style="color: #0f0"><i class="material-icons">login</i></a>'
+        logInOutElement.innerHTML = '<a href="/login"><i class="material-icons" style="color: #0f0">login</i></a>'
         if (data['error'] !== 'login_required') {
             toast('Unknown error fetching user data: ' + data['error'])
         }
         return
     }
-    logInOutElement.setAttribute('data-tooltip', 'Logout')
+    logInOutElement.setAttribute('data-tooltip', `Logged in as ${data['username']}. Click to logout.`)
     // noinspection HtmlUnknownTarget
-    logInOutElement.innerHTML = '<a href="/logout" style="color: #d00"><i class="material-icons">logout</i></a>'
+    logInOutElement.innerHTML = `<a href="/logout"><i class="material-icons" style="color: #d00">logout</i></a>`
     if (authStatus === 'logged_in') {
         toast(`Hello ${data['username']}! (Logged in as ${data['group']})`)
     }
