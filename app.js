@@ -1,11 +1,11 @@
 require('dotenv-safe').config()
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
+const createError = require('http-errors')
+const express = require('express')
+const path = require('path')
+const cookieParser = require('cookie-parser')
+const logger = require('morgan')
 const sql = require('./src/sql')
-const debug = require('debug')('mod.acrylicstyle.xyz:app');
+const debug = require('debug')('mod.acrylicstyle.xyz:app')
 
 sql.query('SELECT 1').then(async () => {
   debug('Confirmed MySQL connection')
@@ -15,6 +15,7 @@ sql.query('SELECT 1').then(async () => {
       sql.execute(`CREATE TABLE users (
   \`id\` int unsigned NOT NULL,
   \`username\` varchar(255) NOT NULL,
+  \`group\` varchar(255) NOT NULL DEFAULT "user",
   \`site_admin\` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (\`id\`)
 )`)

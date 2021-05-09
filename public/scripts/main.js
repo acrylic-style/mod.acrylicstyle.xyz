@@ -31,18 +31,25 @@ if (authStatus === 'logged_out') {
     toast('Something went wrong :(')
 }
 
-fetch('/me', { credentials: 'include' }).then(async res => {
-    if (res.status !== 200) {
+fetch('/me').then(async res => {
+    const data = await res.json()
+    if (res.status !== 200 || data['error']) {
+        logInOutElement.setAttribute('data-tooltip', 'Login')
+        // noinspection HtmlUnknownTarget
         logInOutElement.innerHTML = '<a href="/login" style="color: #0f0"><i class="material-icons">login</i></a>'
+        if (data['error'] !== 'login_required') {
+            toast('Unknown error fetching user data: ' + data['error'])
+        }
         return
     }
-    const data = await res.json()
-    if (!data['error']) {
-        logInOutElement.innerHTML = '<a href="/logout" style="color: #d00"><i class="material-icons">logout</i></a>'
-    }
+    logInOutElement.setAttribute('data-tooltip', 'Logout')
+    // noinspection HtmlUnknownTarget
+    logInOutElement.innerHTML = '<a href="/logout" style="color: #d00"><i class="material-icons">logout</i></a>'
     if (authStatus === 'logged_in') {
-        toast(`Hello ${data['username']}!`)
+        toast(`Hello ${data['username']}! (Logged in as ${data['group']})`)
     }
 })
 
 history.pushState({}, document.title, location.href.replace(/(.*?)\?.*/, '$1'))
+
+M.AutoInit(document.body)

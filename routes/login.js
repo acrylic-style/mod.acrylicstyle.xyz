@@ -3,7 +3,7 @@ const router = express.Router()
 const fetch = require('node-fetch')
 const clientId = process.env.CLIENT_ID
 const clientSecret = process.env.CLIENT_SECRET
-const redirectUri = 'https://mod.acrylicstyle.xyz/login/callback'
+const redirectUri = `${process.env.APP_URL}/login/callback`
 const { generateSecureRandomString, sleep, sessions, getAccessToken } = require('../src/util')
 const osu = require('../src/osu')
 const sql = require('../src/sql')
@@ -28,17 +28,17 @@ router.get('/login/callback', (req, res) => {
   res.set('Cache-Control', 'no-store')
   const err = req.query['error']
   if (err) {
-    res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=err_${err}`)
+    res.redirect(`${process.env.APP_URL}/${redirectTo}?authstate=err_${err}`)
     return
   }
   const state = req.query['state']
   if (!knownTokens.includes(state)) {
-    res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=invalid_csrf_token`)
+    res.redirect(`${process.env.APP_URL}/${redirectTo}?authstate=invalid_csrf_token`)
     return
   }
   const code = req.query['code']
   if (!code) {
-    res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=invalid_code`)
+    res.redirect(`${process.env.APP_URL}/${redirectTo}?authstate=invalid_code`)
     return
   }
   fetch('https://osu.ppy.sh/oauth/token', {
@@ -58,7 +58,7 @@ router.get('/login/callback', (req, res) => {
     const r = await response.json()
     if (response.status !== 200) {
       console.warn(`received an error during exchanging code to access token: ${r}`)
-      res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=invalid_code`)
+      res.redirect(`${process.env.APP_URL}/${redirectTo}?authstate=invalid_code`)
       return
     }
     sessions[state] = {
@@ -69,11 +69,11 @@ router.get('/login/callback', (req, res) => {
     }
     const me = await osu(r['access_token']).me()
     if (!me['username']) {
-      res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=error`)
+      res.redirect(`${process.env.APP_URL}/${redirectTo}?authstate=error`)
       return
     }
     res.cookie('mod_session', state)
-    res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=logged_in`)
+    res.redirect(`${process.env.APP_URL}/${redirectTo}?authstate=logged_in`)
   })
 })
 
@@ -98,8 +98,9 @@ router.get('/me', (req, res) => {
       return
     }
     await sql.execute("INSERT IGNORE INTO users (`id`, `username`) VALUES (?, ?)", data.id, data.username)
-    const user = await sql.findOne("SELECT `site_admin` FROM users WHERE `id` = ?", data.id)
+    const user = await sql.findOne("SELECT `site_admin`, `group` FROM users WHERE `id` = ?", data.id)
     data['site_admin'] = !!user['site_admin']
+    data['group'] = user['group']
     res.send(data)
   }).catch(e => {
     console.error(e)
