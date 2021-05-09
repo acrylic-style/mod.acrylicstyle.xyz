@@ -1,5 +1,4 @@
-// noinspection JSUnusedLocalSymbols
-const Connection = require('mysql/lib/Connection')
+const debug = require('debug')('mod.acrylicstyle.xyz:mysql')
 const mysql = require('mysql')
 const pool = mysql.createPool({
     connectionLimit: 10,
@@ -10,24 +9,13 @@ const pool = mysql.createPool({
 })
 
 /**
- * @returns {Promise<Connection>}
- */
-const getConnection = /* async */ () => {
-    return new Promise((resolve, reject) =>
-        pool.getConnection((err, connection) => {
-            if (err) return reject(err)
-            resolve(connection)
-        }
-    ))
-}
-
-/**
  * @param {string} sql
  * @param values
  * @returns {Promise<{ results: Array<any>, fields: Array<string> }>}
  */
 const query = (sql, ...values) => {
     return new Promise((resolve, reject) => {
+        debug(sql, values)
         pool.query(sql, values, (error, results, fields) => {
             if (error) return reject(error)
             resolve({ results, fields })
@@ -42,6 +30,7 @@ const query = (sql, ...values) => {
  */
 const execute = (sql, ...values) => {
     return new Promise((resolve, reject) => {
+        debug(sql, values)
         pool.query(sql, values, (error) => {
             if (error) return reject(error)
             resolve(null)
@@ -54,7 +43,7 @@ const execute = (sql, ...values) => {
  * @param values
  * @returns {Promise<any>}
  */
-const findOne = (sql, ...values) => query(sql, values).then(value => value.results[0])
+const findOne = (sql, ...values) => query(sql, values).then(value => value.results[0] || null)
 
 /**
  * @param {string} sql
@@ -64,7 +53,6 @@ const findOne = (sql, ...values) => query(sql, values).then(value => value.resul
 const findAll = (sql, ...values) => query(sql, values).then(value => value.results)
 
 module.exports = {
-    getConnection,
     query,
     execute,
     findOne,

@@ -1,4 +1,5 @@
 const logInOutElement = document.getElementById('log-in-out')
+const logInOutMobileElement = document.getElementById('log-in-out-mobile')
 
 function parseQuery(queryString) {
     const query = {}
@@ -11,7 +12,7 @@ function parseQuery(queryString) {
 }
 
 function toast(text) {
-    M.toast({ text })
+    M.toast({ unsafeHTML: text.replace('\n', '<br />') })
     console.log(`Notification: ${text}`)
 }
 
@@ -27,16 +28,24 @@ if (authStatus === 'logged_out') {
     toast('Error during login: Invalid CSRF Token')
 } else if (authStatus === 'invalid_code') {
     toast('Error during login: Invalid secret code')
+} else if (authStatus === 'timed_out') {
+    toast('Error during login: Timed out random string generator')
 } else if (authStatus === 'error') {
     toast('Something went wrong :(')
 }
 
 fetch('/me').then(async res => {
+    let redirect = ''
+    if (logInOutElement.getAttribute('data-redirect-to')) {
+        redirect = '?redirect_to=' + logInOutElement.getAttribute('data-redirect-to')
+    }
     const data = await res.json()
     if (res.status !== 200 || data['error']) {
-        logInOutElement.setAttribute('data-tooltip', 'Login')
+        logInOutElement.setAttribute('data-tooltip', 'You are currently not logged in. Click to login.')
         // noinspection HtmlUnknownTarget
-        logInOutElement.innerHTML = '<a href="/login"><i class="material-icons" style="color: #0f0">login</i></a>'
+        const el = `<a href="/login${redirect}"><i class="material-icons" style="color: #0f0">login</i></a>`
+        logInOutElement.innerHTML = el
+        logInOutMobileElement.innerHTML = el
         if (data['error'] !== 'login_required') {
             toast('Unknown error fetching user data: ' + data['error'])
         }
@@ -44,7 +53,9 @@ fetch('/me').then(async res => {
     }
     logInOutElement.setAttribute('data-tooltip', `Logged in as ${data['username']}. Click to logout.`)
     // noinspection HtmlUnknownTarget
-    logInOutElement.innerHTML = `<a href="/logout"><i class="material-icons" style="color: #d00">logout</i></a>`
+    const el = `<a href="/logout${redirect}" class="avatar-link"><img width="56" height="56" class="avatar left" src="${data['avatar_url']}" alt="avatar"/><i class="material-icons" style="color: #d00">logout</i></a>`
+    logInOutElement.innerHTML = el
+    logInOutMobileElement.innerHTML = el
     if (authStatus === 'logged_in') {
         toast(`Hello ${data['username']}! (Logged in as ${data['group']})`)
     }

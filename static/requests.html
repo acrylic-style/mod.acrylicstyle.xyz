@@ -4,19 +4,71 @@
         <title>Mod Requests</title>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@materializecss/materialize@1.1.0-alpha/dist/css/materialize.min.css" />
+        <link rel="stylesheet" href="/css/main.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     </head>
     <body>
         <nav>
             <div class="nav-wrapper">
+                <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
                 <ul id="nav-mobile" class="hide-on-med-and-down" style="display: flex; justify-content: center;">
                     <li><a href="/">Home</a></li>
                     <li class="active"><a href="/requests">Mod Requests</a></li>
                     <li><a href="/queue">Modding Queue</a></li>
+                    <!-- Redirecting to this page causes infinity login loop so we don't do that -->
+                    <!-- You will automatically be redirected to login page so redirect tag for login is not needed -->
                     <li id="log-in-out" class="tooltipped" data-position="bottom"></li>
                 </ul>
             </div>
         </nav>
+        <ul class="sidenav" id="mobile-nav">
+            <li><a href="/">Home</a></li>
+            <li class="active"><a href="/requests">Mod Requests</a></li>
+            <li><a href="/queue">Modding Queue</a></li>
+            <li id="log-in-out-mobile"></li>
+        </ul>
+        <div class="container">
+            <div class="row">
+                <div class="col s12">
+                    <p>This page lets you submit mod requests without asking people individually and allows you to track the status.</p>
+                    <p><b>Not every beatmap submitted will be modded.</b></p>
+                    <hr>
+                    <p>Rules (read before submitting!):</p>
+                    <ul class="browser-default">
+                        <li>You can submit a beatmap once every 2 weeks</li>
+                        <li>No tech maps</li>
+                        <li>No maps that has 8+ star rating</li>
+                        <li>Beatmap must be pending or WIP</li>
+                        <li>Set your map's language/genre before submitting (if possible)</li>
+                        <li>osu!std only! (taiko, catch, mania will very likely be rejected)</li>
+                        <li>You'll get banned from using this form if you abused this system (you won't get banned as long as you're using it normally)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <input id="beatmap_link" type="text" class="validate" placeholder="eg: https://osu.ppy.sh/beatmapsets/1337#osu/1337" required />
+                            <label for="beatmap_link">Beatmap Link</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <input id="comment" type="text" class="validate" maxlength="255">
+                            <label for="comment">Comment (optional)</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s12">
+                            <button class="btn waves-effect waves-light" type="submit" id="submit-button">Submit<i class="material-icons right">send</i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <script src="https://cdn.jsdelivr.net/npm/@materializecss/materialize@1.1.0-alpha/dist/js/materialize.min.js"></script>
         <script type="text/javascript" src="/scripts/main.js"></script>
+        <script type="text/javascript" src="/scripts/requests.js"></script>
     </body>
 </html>
