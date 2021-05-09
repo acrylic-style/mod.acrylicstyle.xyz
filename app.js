@@ -4,6 +4,28 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const sql = require('./src/sql')
+const debug = require('debug')('mod.acrylicstyle.xyz:app');
+
+sql.query('SELECT 1').then(async () => {
+  debug('Confirmed MySQL connection')
+  await sql.findOne('SHOW TABLES LIKE "users"').then(res => {
+    if (!res) {
+      debug('Creating users table')
+      sql.execute(`CREATE TABLE users (
+  \`id\` int unsigned NOT NULL,
+  \`username\` varchar(255) NOT NULL,
+  \`site_admin\` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (\`id\`)
+)`)
+      debug('Created users table')
+    }
+  })
+}).catch(e => {
+  console.error('Your mysql configuration is foobar, pls fix')
+  console.error(e.stack || e)
+  process.kill(process.pid, 'SIGINT')
+})
 
 const indexRouter = require('./routes/index');
 const loginRouter = require('./routes/login');

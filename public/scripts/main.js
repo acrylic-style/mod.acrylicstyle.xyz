@@ -10,14 +10,25 @@ function parseQuery(queryString) {
     return query
 }
 
+function toast(text) {
+    M.toast({ text })
+    console.log(`Notification: ${text}`)
+}
+
 const query = parseQuery(location.href.replace(/.*?\?(.*)/, '$1'))
 
 const authStatus = query['authstate']
-if (authStatus === 'logged_in') {
-    const username = query['username'] || '???'
-    M.toast({ text: `Hello ${username}!` })
-} else if (authStatus === 'logged_out') {
-    M.toast({ text: 'You have successfully logged out!' })
+// logged_in is handled below
+if (authStatus === 'logged_out') {
+    toast('You have successfully logged out!')
+} else if (authStatus === 'err_access_denied') {
+    toast('Error during login: Access denied (You\'ve cancelled the authorization request)')
+} else if (authStatus === 'invalid_csrf_token') {
+    toast('Error during login: Invalid CSRF Token')
+} else if (authStatus === 'invalid_code') {
+    toast('Error during login: Invalid secret code')
+} else if (authStatus === 'error') {
+    toast('Something went wrong :(')
 }
 
 fetch('/me', { credentials: 'include' }).then(async res => {
@@ -28,6 +39,9 @@ fetch('/me', { credentials: 'include' }).then(async res => {
     const data = await res.json()
     if (!data['error']) {
         logInOutElement.innerHTML = '<a href="/logout" style="color: #d00"><i class="material-icons">logout</i></a>'
+    }
+    if (authStatus === 'logged_in') {
+        toast(`Hello ${data['username']}!`)
     }
 })
 

@@ -4,11 +4,12 @@ const fetch = require('node-fetch')
 const clientId = process.env.CLIENT_ID
 const clientSecret = process.env.CLIENT_SECRET
 const redirectUri = 'https://mod.acrylicstyle.xyz/login/callback'
-const { generateSecureRandomString, sleep, sessions } = require('../src/util')
+const { generateSecureRandomString, sleep, sessions, getAccessToken } = require('../src/util')
 const osu = require('../src/osu')
+const sql = require('../src/sql')
 const knownTokens = []
 
-router.get('/login', (req, res, next) => {
+router.get('/login', (req, res) => {
   res.set('Cache-Control', 'no-store')
   if (req.query['redirect_to']) res.cookie('redirect_to', req.query['redirect_to'])
   Promise.race([sleep(3000), generateSecureRandomString(50)]).then(r => {
@@ -21,21 +22,23 @@ router.get('/login', (req, res, next) => {
   })
 });
 
-router.get('/login/callback', (req, res, next) => {
+router.get('/login/callback', (req, res) => {
+  const redirectTo = req.cookies['redirect_to'] || ''
+  res.cookie('redirect_to', '')
   res.set('Cache-Control', 'no-store')
   const err = req.query['error']
   if (err) {
-    res.status(401).send({ error: err })
+    res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=err_${err}`)
     return
   }
   const state = req.query['state']
   if (!knownTokens.includes(state)) {
-    res.status(400).send({ error: 'invalid token' })
+    res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=invalid_csrf_token`)
     return
   }
   const code = req.query['code']
   if (!code) {
-    res.status(400).send({ error: 'missing code' })
+    res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=invalid_code`)
     return
   }
   fetch('https://osu.ppy.sh/oauth/token', {
@@ -55,7 +58,7 @@ router.get('/login/callback', (req, res, next) => {
     const r = await response.json()
     if (response.status !== 200) {
       console.warn(`received an error during exchanging code to access token: ${r}`)
-      res.status(400).send({ error: 'received an error during requesting access token' })
+      res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=invalid_code`)
       return
     }
     sessions[state] = {
@@ -66,22 +69,42 @@ router.get('/login/callback', (req, res, next) => {
     }
     const me = await osu(r['access_token']).me()
     if (!me['username']) {
-      res.status(400).send({ error: 'failed to invoke api' })
+      res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=error`)
       return
     }
-    const redirectTo = req.cookies['redirect_to'] || ''
     res.cookie('mod_session', state)
-    res.cookie('redirect_to', null)
-    res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=logged_in&username=${me['username']}`)
+    res.redirect(`https://mod.acrylicstyle.xyz/${redirectTo}?authstate=logged_in`)
   })
 })
 
-router.get('/logout', (req, res, next) => {
+router.get('/logout', (req, res) => {
   if (req.cookies) {
     const session = req.cookies['mod_session']
     if (session) delete sessions[session]
   }
   res.redirect('/?authstate=logged_out')
+})
+
+router.get('/me', (req, res) => {
+  const token = getAccessToken(req.cookies)
+  if (!token) return res.status(403).send({ error: 'login_required' })
+  osu(token).me().then(async data => {
+    if (data['status_code'] !== 200) {
+      res.status(403).send({ error: 'login_required' })
+      return
+    }
+    if (!data.id || !data.username) {
+      res.status(403).send({ error: 'login_required' })
+      return
+    }
+    await sql.execute("INSERT IGNORE INTO users (`id`, `username`) VALUES (?, ?)", data.id, data.username)
+    const user = await sql.findOne("SELECT `site_admin` FROM users WHERE `id` = ?", data.id)
+    data['site_admin'] = !!user['site_admin']
+    res.send(data)
+  }).catch(e => {
+    console.error(e)
+    res.status(500).send({ something_broke: 'something went wrong' })
+  })
 })
 
 module.exports = router
