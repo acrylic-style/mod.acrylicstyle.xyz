@@ -68,6 +68,8 @@ sql.query('SELECT 1').then(async () => {
   \`date\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`lowest_sr\` float NOT NULL DEFAULT 0,
   \`highest_sr\` float NOT NULL DEFAULT 0,
+  \`artist\` varchar(255) NOT NULL,
+  \`title\` varchar(255) NOT NULL,
   PRIMARY KEY (\`beatmapset_id\`)
 )`)
       // all possible status values:

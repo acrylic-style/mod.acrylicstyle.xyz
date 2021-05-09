@@ -1,6 +1,70 @@
 const logInOutElement = document.getElementById('log-in-out')
 const logInOutMobileElement = document.getElementById('log-in-out-mobile')
 
+/*
+const isVisible = elem => !!elem && !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length)
+
+function hideOnClickOutside(element) {
+    const outsideClickListener = event => {
+        if (!element.contains(event.target) && isVisible(element)) {
+            element.style.display = 'none'
+            removeClickListener()
+        }
+    }
+
+    const removeClickListener = () => {
+        document.removeEventListener('click', outsideClickListener)
+    }
+
+    document.addEventListener('click', outsideClickListener)
+}
+
+async function confirm(title) {
+    let root = document.getElementById('_confirm-popup')
+    if (!root) {
+        root = document.createElement('div')
+        root.id = '_confirm-popup'
+        document.body.appendChild(root)
+    }
+    if (root.getAttribute("shown") === 'true') {
+        throw new Error('Cannot open confirm popup while another confirm popup is open')
+    }
+    root.setAttribute("shown", "true")
+    hideOnClickOutside(root)
+}
+*/
+
+function readableTime(time) {
+    if (time < 0) {
+        time = -time
+        if (time < 1000 * 60) return `${Math.floor(time / 1000)} second${Math.floor(time / 1000) === 1 ? '' : 's'} ago`
+        if (time < 1000 * 60 * 60) return `${Math.floor(time / (1000 * 60))} minute${Math.floor(time / (1000 * 60)) === 1 ? '' : 's'} ago`
+        if (time < 1000 * 60 * 60 * 24) return `${Math.floor(time / (1000 * 60 * 60))} hour${Math.floor(time / (1000 * 60 * 60)) === 1 ? '' : 's'} ago`
+        if (time < 1000 * 60 * 60 * 24 * 30) return `${Math.floor(time / (1000 * 60 * 60 * 24))} day${Math.floor(time / (1000 * 60 * 60 * 24)) === 1 ? '' : 's'} ago`
+        return `${Math.floor(time / (1000 * 60 * 60 * 24 * 30))} month${Math.floor(time / (1000 * 60 * 60 * 24 * 30)) === 1 ? '' : 's'} ago`
+    } else {
+        if (time < 1000 * 60) return 'soon'
+        if (time < 1000 * 60 * 60) return `in ${Math.floor(time / (1000 * 60))} minute${Math.floor(time / (1000 * 60)) === 1 ? '' : 's'}`
+        if (time < 1000 * 60 * 60 * 24) return `in ${Math.floor(time / (1000 * 60 * 60))} hour${Math.floor(time / (1000 * 60 * 60)) === 1 ? '' : 's'}`
+        if (time < 1000 * 60 * 60 * 24 * 30) return `in ${Math.floor(time / (1000 * 60 * 60 * 24))} day${Math.floor(time / (1000 * 60 * 60 * 24)) === 1 ? '' : 's'}`
+        return `in ${Math.floor(time / (1000 * 60 * 60 * 24 * 30))} month${Math.floor(time / (1000 * 60 * 60 * 24 * 30)) === 1 ? '' : 's'}`
+    }
+}
+
+function openInNewTab(url) {
+    const w = window.open(url, '_blank')
+    if (w) w.opener = null
+}
+
+function getColorForDifficulty(sr = 0) {
+    if (sr < 2) return '#88B300' // infinity - 1.99
+    if (sr < 2.7) return '#66CCFF' // 2 - 2.69
+    if (sr < 4) return '#FFCC22' // 2.7 - 3.99
+    if (sr < 5.3) return '#FF66AA' // 4.0 - 5.29
+    if (sr < 6.5) return '#8866EE' // 5.3 - 6.49
+    return '#000000' // 6.5+
+}
+
 function parseQuery(queryString) {
     const query = {}
     const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&')
@@ -16,7 +80,8 @@ function toast(text) {
     console.log(`Notification: ${text}`)
 }
 
-const query = parseQuery(location.href.replace(/.*?\?(.*)/, '$1'))
+// noinspection ES6ConvertVarToLetConst
+var query = parseQuery(location.href.replace(/.*?\?(.*)/, '$1'))
 
 const authStatus = query['authstate']
 // logged_in is handled below

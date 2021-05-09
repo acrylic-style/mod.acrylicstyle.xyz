@@ -53,7 +53,7 @@ submitButtonElement.addEventListener('click', ev => {
             } else if (error === 'not_found') {
                 toast('Beatmap does not found.')
             } else if (error === 'time') {
-                toast('You can\'t submit a beatmap yet!\nYou will be able to submit a map ' + data['time']) // soon (<60 seconds), in x days, in x weeks
+                toast(`You can't submit a beatmap yet!\nYou will be able to submit a map ${data['time']}.`) // soon (<60 seconds), in x days, in x weeks
             } else if (error === 'banned') {
                 toast(`You are banned from using the mod request system.\nReason: ${data['reason']}`)
             } else {

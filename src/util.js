@@ -57,17 +57,17 @@ const getIPAddress = req => {
 const readableTime = time => {
     if (time < 0) {
         time = -time
-        if (time < 1000 * 60) return `${Math.floor(time / 1000)} seconds ago`
-        if (time < 1000 * 60 * 60) return `${Math.floor(time / (1000 * 60))} minutes ago`
-        if (time < 1000 * 60 * 60 * 24) return `${Math.floor(time / (1000 * 60 * 60))} hours ago`
-        if (time < 1000 * 60 * 60 * 24 * 30) return `${Math.floor(time / (1000 * 60 * 60 * 24))} days ago`
-        return `${Math.floor(time / (1000 * 60 * 60 * 24 * 30))} months ago`
+        if (time < 1000 * 60) return `${Math.floor(time / 1000)} second${Math.floor(time / 1000) === 1 ? '' : 's'} ago`
+        if (time < 1000 * 60 * 60) return `${Math.floor(time / (1000 * 60))} minute${Math.floor(time / (1000 * 60)) === 1 ? '' : 's'} ago`
+        if (time < 1000 * 60 * 60 * 24) return `${Math.floor(time / (1000 * 60 * 60))} hour${Math.floor(time / (1000 * 60 * 60)) === 1 ? '' : 's'} ago`
+        if (time < 1000 * 60 * 60 * 24 * 30) return `${Math.floor(time / (1000 * 60 * 60 * 24))} day${Math.floor(time / (1000 * 60 * 60 * 24)) === 1 ? '' : 's'} ago`
+        return `${Math.floor(time / (1000 * 60 * 60 * 24 * 30))} month${Math.floor(time / (1000 * 60 * 60 * 24 * 30)) === 1 ? '' : 's'} ago`
     } else {
         if (time < 1000 * 60) return 'soon'
-        if (time < 1000 * 60 * 60) return `in ${Math.floor(time / (1000 * 60))} minutes`
-        if (time < 1000 * 60 * 60 * 24) return `in ${Math.floor(time / (1000 * 60 * 60))} hours`
-        if (time < 1000 * 60 * 60 * 24 * 30) return `in ${Math.floor(time / (1000 * 60 * 60 * 24))} days`
-        return `in ${Math.floor(time / (1000 * 60 * 60 * 24 * 30))} months`
+        if (time < 1000 * 60 * 60) return `in ${Math.floor(time / (1000 * 60))} minute${Math.floor(time / (1000 * 60)) === 1 ? '' : 's'}`
+        if (time < 1000 * 60 * 60 * 24) return `in ${Math.floor(time / (1000 * 60 * 60))} hour${Math.floor(time / (1000 * 60 * 60)) === 1 ? '' : 's'}`
+        if (time < 1000 * 60 * 60 * 24 * 30) return `in ${Math.floor(time / (1000 * 60 * 60 * 24))} day${Math.floor(time / (1000 * 60 * 60 * 24)) === 1 ? '' : 's'}`
+        return `in ${Math.floor(time / (1000 * 60 * 60 * 24 * 30))} month${Math.floor(time / (1000 * 60 * 60 * 24 * 30)) === 1 ? '' : 's'}`
     }
 }
 
@@ -90,12 +90,14 @@ const getBeatmapSet = async (token, beatmapSetId = 0) => {
         const lowestSR = maps.length === 0 ? 0 : maps[0]['difficulty_rating']
         const highestSR = maps.length === 0 ? 0 : maps[maps.length - 1]['difficulty_rating']
         await sql.execute(
-            "INSERT INTO beatmaps (`beatmapset_id`, `user_id`, `status`, `lowest_sr`, `highest_sr`) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO beatmaps (`beatmapset_id`, `user_id`, `status`, `lowest_sr`, `highest_sr`, `artist`, `title`) VALUES (?, ?, ?, ?, ?, ?, ?)",
             beatmapSetApi['id'],
             beatmapSetApi['user_id'],
             beatmapSetApi['status'],
             lowestSR,
             highestSR,
+            beatmapSetApi['artist'],
+            beatmapSetApi['title'],
         )
         beatmapSet = {}
         beatmapSet.beatmapset_id = beatmapSetApi['id']
@@ -104,6 +106,8 @@ const getBeatmapSet = async (token, beatmapSetId = 0) => {
         beatmapSet.date = new Date()
         beatmapSet.lowest_sr = lowestSR
         beatmapSet.highest_sr = highestSR
+        beatmapSet.artist = beatmapSetApi['artist']
+        beatmapSet.title = beatmapSetApi['title']
         beatmapSet.status_code = 200 // its always 200
     }
     if (beatmapSet.date.getTime() + getUpdateTime(beatmapSet.status) < Date.now()) queueBeatmapSetUpdate(token, beatmapSetId)

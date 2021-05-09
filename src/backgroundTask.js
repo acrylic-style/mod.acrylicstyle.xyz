@@ -32,7 +32,18 @@ module.exports = {
                 queuedBeatmapSetUpdates = queuedBeatmapSetUpdates.filter(b => b !== beatmapSetId)
                 return debug(`Update of beatmapset ${beatmapSetId} failed: ${res['status_code']} (${res['error']})`)
             }
-            await sql.execute("UPDATE beatmaps SET status = ?, date = now() WHERE beatmapset_id = ?", res['status'], beatmapSetId)
+            const maps = res['beatmaps'].sort((a, b) => a['difficulty_rating'] - b['difficulty_rating'])
+            const lowestSR = maps.length === 0 ? 0 : maps[0]['difficulty_rating']
+            const highestSR = maps.length === 0 ? 0 : maps[maps.length - 1]['difficulty_rating']
+            await sql.execute(
+                "UPDATE beatmaps SET `artist` = ?, `title` = ?, `status` = ?, `date` = now(), `highest_sr` = ?, `lowest_sr` = ? WHERE beatmapset_id = ?",
+                res['artist'],
+                res['title'],
+                res['status'],
+                beatmapSetId,
+                highestSR,
+                lowestSR,
+            )
             queuedBeatmapSetUpdates = queuedBeatmapSetUpdates.filter(b => b !== beatmapSetId)
             debug(`Updated beatmapset ${beatmapSetId}`)
         })

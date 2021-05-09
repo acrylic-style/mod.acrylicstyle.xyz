@@ -71,8 +71,8 @@ router.post('/queue/submit', async (req, res) => {
     // admins cannot bypass the ban :P
     if (user['mod_queue_banned']) return res.send({ error: 'banned', reason: user['mod_queue_banned_reason'] || null })
     // but admins are allowed to bypass this
-    const time = !user['last_submit'] ? 0 : user['last_submit'].getTime() + 1000 * 60 * 60 * 24 * 14
-    if (user.group !== 'admin' && time > Date.now()) return res.send({ error: 'time', expiresIn: readableTime(time - Date.now()) })
+    const time = !user['last_submit'] ? 0 : (user['last_submit'].getTime() + 1000 * 60 * 60 * 24 * 14)
+    if (user.group !== 'admin' && time > Date.now()) return res.send({ error: 'time', time: readableTime(time - Date.now()) })
     res.startTime('get_beatmapset', `API Request: beatmapsets/${beatmapSetId}`)
     const beatmapSet = await getBeatmapSet(session.access_token, beatmapSetId)
     res.endTime('get_beatmapset')
@@ -88,6 +88,7 @@ router.post('/queue/submit', async (req, res) => {
         if (beatmapSet.status !== 'pending' && beatmapSet.status !== 'wip') return res.send({ error: 'wrong_status' })
     }
     await sql.execute("INSERT INTO requests (`beatmapset_id`, `user_id`, `comment_by_mapper`) VALUES (?, ?, ?)", beatmapSetId, session.user_id, comment)
+    await sql.execute("UPDATE users SET last_submit = now() WHERE id = ?", session.user_id)
     res.send({ message: 'accepted' })
 })
 
