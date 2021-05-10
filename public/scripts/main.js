@@ -1,9 +1,25 @@
 const logInOutElement = document.getElementById('log-in-out')
 const logInOutMobileElement = document.getElementById('log-in-out-mobile')
 
-/*
 const isVisible = elem => !!elem && !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length)
 
+function addTooltipOrToast(el, text = '', position = 'top') {
+    el.addEventListener('click', ev => {
+        if (window.innerWidth <= 800 && el.contains(ev.target) && isVisible(el)) {
+            toast(text)
+            ev.shouldFire = false
+        } else {
+            ev.shouldFire = true
+        }
+    })
+    if (window.innerWidth > 768) {
+        el.setAttribute('data-position', position)
+        el.setAttribute('data-tooltip', text)
+        M.Tooltip.init(el)
+    }
+}
+
+/*
 function hideOnClickOutside(element) {
     const outsideClickListener = event => {
         if (!element.contains(event.target) && isVisible(element)) {

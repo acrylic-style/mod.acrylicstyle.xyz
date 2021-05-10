@@ -1,4 +1,4 @@
-const submittedMapsElement = document.getElementById('submitted-maps')
+const mapsElement = document.getElementById('maps')
 
 function coverURL(beatmapSetId) {
     return `https://assets.ppy.sh/beatmaps/${beatmapSetId}/covers/card.jpg`
@@ -28,30 +28,20 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         let status = `${e.beatmapset.status.substring(0, 1).toUpperCase() + e.beatmapset.status.substring(1)}`
         if (status.toLowerCase() === 'wip') status = 'WIP'
         rankedStatusIcon.setAttribute('data-tooltip', status)
-        let rsIcon = 'edit'
+        rankedStatusIcon.textContent = 'edit'
         if (e.beatmapset.status === 'ranked') {
-            rsIcon = 'keyboard_capslock'
+            rankedStatusIcon.textContent = 'keyboard_capslock'
         } else if (e.beatmapset.status === 'approved') {
-            rsIcon = 'check'
+            rankedStatusIcon.textContent = 'check'
         } else if (e.beatmapset.status === 'loved') {
-            rsIcon = 'favorite'
+            rankedStatusIcon.textContent = 'favorite'
         } else if (e.beatmapset.status === 'qualified') {
-            rsIcon = 'thumb_up'
+            rankedStatusIcon.textContent = 'thumb_up'
         }
-        rankedStatusIcon.textContent = rsIcon
-        if (window.innerWidth < 768) {
-            const isVisible = elem => !!elem && !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length)
-            cardDetails.addEventListener('click', ev => {
-                if (rankedStatusIcon.contains(ev.target) && isVisible(rankedStatusIcon)) {
-                    toast(status)
-                } else {
-                    openInNewTab(`https://osu.ppy.sh/beatmapsets/${e.beatmapset_id}`)
-                }
-            })
-        } else {
-            cardDetails.addEventListener('click', () => openInNewTab(`https://osu.ppy.sh/beatmapsets/${e.beatmapset_id}`))
-            M.Tooltip.init(rankedStatusIcon)
-        }
+        cardDetails.addEventListener('click', ev => {
+            if (ev.shouldFire || typeof ev.shouldFire === 'undefined') openInNewTab(`https://osu.ppy.sh/beatmapsets/${e.beatmapset_id}`)
+        })
+        addTooltipOrToast(rankedStatusIcon, status)
         const cardBody = document.createElement('div')
         cardBody.classList.add('card-body')
         const titleContainer = document.createElement('div')
@@ -85,6 +75,17 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         const srSpread = document.createElement('span')
         srSpread.classList.add('sr-spread')
         srSpread.innerHTML = `<span style="color: ${getColorForDifficulty(e.beatmapset.highest_sr)}">★</span><span style="color: ${getColorForDifficulty(e.beatmapset.lowest_sr)}">${e.beatmapset.lowest_sr}</span>-<span style="color: ${getColorForDifficulty(e.beatmapset.highest_sr)}">${e.beatmapset.highest_sr}</span>`
+        const notesIcon = document.createElement('i')
+        notesIcon.classList.add('material-icons')
+        notesIcon.textContent = 'notes'
+        const notesFromMapper = document.createElement('div')
+        notesFromMapper.classList.add('card-comment')
+        const notesFromMapperText = document.createElement('span')
+        notesFromMapperText.textContent = 'Mapper: ' + (e['comment_by_mapper'] || 'None')
+        const notesFromModder = document.createElement('div')
+        notesFromModder.classList.add('card-comment')
+        const notesFromModderText = document.createElement('span')
+        notesFromModderText.textContent = 'Modder: ' + e['comment_by_modder']
         const submittedAt = new Date(e.date)
         const datetime = document.createElement('span')
         datetime.textContent = readableTime(submittedAt.getTime() - Date.now())
@@ -94,14 +95,39 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         M.Tooltip.init(datetime)
         const iconsContainer = document.createElement('div')
         iconsContainer.classList.add('card-icons')
+        const statusIcon = document.createElement('i')
+        statusIcon.classList.add('material-icons', 'float-left', `approval-status-${e.status}`)
+        statusIcon.textContent = 'help'
+        let statusText = 'Unknown'
+        if (e.status === 'submitted') {
+            statusIcon.textContent = 'history_toggle_off'
+            statusText = 'Pending approval'
+        } else if (e.status === 'pending') {
+            statusIcon.textContent = 'watch_later'
+            statusText = 'Pending'
+        } else if (e.status === 'rejected') {
+            statusIcon.textContent = 'close'
+            statusText = 'Rejected'
+        } else if (e.status === 'done') {
+            statusIcon.textContent = 'done'
+            statusText = 'Finished'
+        }
+        addTooltipOrToast(statusIcon, statusText, 'bottom')
 
+        iconsContainer.appendChild(statusIcon)
+        notesFromMapper.appendChild(notesIcon.cloneNode(true))
+        notesFromMapper.appendChild(notesFromMapperText)
+        notesFromModder.appendChild(notesIcon.cloneNode(true))
+        notesFromModder.appendChild(notesFromModderText)
         mapperBold.appendChild(mapperLink)
-        titleContainer.appendChild(title)
         mapperContainer.appendChild(mapperText)
         mapperContainer.appendChild(mapperBold)
+        titleContainer.appendChild(title)
         cardBody.appendChild(titleContainer)
         cardBody.appendChild(mapperContainer)
         cardBody.appendChild(srSpread)
+        cardBody.appendChild(notesFromMapper)
+        if (e['comment_by_modder']) cardBody.appendChild(notesFromModder)
         cardBody.appendChild(datetime)
         cardBody.appendChild(iconsContainer)
         cardRankedStatus.appendChild(rankedStatusIcon)
@@ -109,8 +135,6 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         cardDetails.appendChild(cardRankedStatus)
         cardDetails.appendChild(cardBody)
         el.appendChild(cardDetails)
-        if (e.status === 'submitted') {
-            submittedMapsElement.appendChild(el)
-        }
+        mapsElement.appendChild(el)
     })
 })
