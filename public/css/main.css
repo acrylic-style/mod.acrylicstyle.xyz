@@ -27,7 +27,7 @@ input {
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   #nav-mobile {
     position: fixed;
     width: 300px;
@@ -44,6 +44,10 @@ input {
     will-change: transform;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+  }
+
+  #submitted-maps {
+    flex-direction: column;
   }
 }
 

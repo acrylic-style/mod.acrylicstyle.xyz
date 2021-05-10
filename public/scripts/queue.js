@@ -17,7 +17,6 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         el.classList.add('col-l', 'col-m', 'map-entry')
         const cardDetails = document.createElement('div')
         cardDetails.classList.add('card', 'card-individual')
-        cardDetails.addEventListener('click', () => openInNewTab(`https://osu.ppy.sh/beatmapsets/${e.beatmapset_id}`))
         const cover = document.createElement('img')
         cover.src = coverURL(e.beatmapset_id)
         //cover.classList.add('card-img')
@@ -40,7 +39,19 @@ fetch(`/api/queue?page=${page}`).then(async r => {
             rsIcon = 'thumb_up'
         }
         rankedStatusIcon.textContent = rsIcon
-        M.Tooltip.init(rankedStatusIcon)
+        if (window.innerWidth < 768) {
+            const isVisible = elem => !!elem && !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length)
+            cardDetails.addEventListener('click', ev => {
+                if (rankedStatusIcon.contains(ev.target) && isVisible(rankedStatusIcon)) {
+                    toast(status)
+                } else {
+                    openInNewTab(`https://osu.ppy.sh/beatmapsets/${e.beatmapset_id}`)
+                }
+            })
+        } else {
+            cardDetails.addEventListener('click', () => openInNewTab(`https://osu.ppy.sh/beatmapsets/${e.beatmapset_id}`))
+            M.Tooltip.init(rankedStatusIcon)
+        }
         const cardBody = document.createElement('div')
         cardBody.classList.add('card-body')
         const titleContainer = document.createElement('div')
