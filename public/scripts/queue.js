@@ -84,7 +84,7 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         }
         const srSpread = document.createElement('span')
         srSpread.classList.add('sr-spread')
-        srSpread.innerHTML = `<span style="color: ${getColorForDifficulty(e.beatmapset.highest_sr)}">&#x1F7CA;</span><span style="color: ${getColorForDifficulty(e.beatmapset.lowest_sr)}">${e.beatmapset.lowest_sr}</span>-<span style="color: ${getColorForDifficulty(e.beatmapset.highest_sr)}">${e.beatmapset.highest_sr}</span>`
+        srSpread.innerHTML = `<span style="color: ${getColorForDifficulty(e.beatmapset.highest_sr)}">★</span><span style="color: ${getColorForDifficulty(e.beatmapset.lowest_sr)}">${e.beatmapset.lowest_sr}</span>-<span style="color: ${getColorForDifficulty(e.beatmapset.highest_sr)}">${e.beatmapset.highest_sr}</span>`
         const submittedAt = new Date(e.date)
         const datetime = document.createElement('span')
         datetime.textContent = readableTime(submittedAt.getTime() - Date.now())
