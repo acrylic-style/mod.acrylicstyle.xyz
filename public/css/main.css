@@ -50,7 +50,9 @@ input {
   #maps {
     flex-direction: column;
   }
+}
 
+@media (min-width: 728px) {
   .col-m {
     flex: 0 0 50%;
     max-width: 50%;
@@ -64,7 +66,7 @@ input {
   padding-left: 15px;
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1400px) {
   .col-l {
     flex: 0 0 33.33333%;
     max-width: 33.33333%;
