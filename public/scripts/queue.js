@@ -261,6 +261,7 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         const approveButton = document.createElement('i')
         const unapproveButton = document.createElement('i')
         const rejectButton = document.createElement('i')
+        const manageButtonLink = document.createElement('a')
         if (me && (me.group === 'modder' || me.group === 'admin')) {
             const updateButtons = () => {
                 editCommentModderButton.classList.remove('hidden')
@@ -390,6 +391,20 @@ fetch(`/api/queue?page=${page}`).then(async r => {
                 })
             })
             M.Tooltip.init(rejectButton)
+            if (me.group === 'admin') {
+                const manageButton = document.createElement('i')
+                manageButton.classList.add('material-icons', 'float-right')
+                manageButton.textContent = 'build'
+                manageButtonLink.href = `/admin/requests/${e.id}`
+                manageButtonLink.rel = 'noopener'
+                manageButtonLink.target = '_blank'
+                manageButtonLink.classList.add('card-manage-button', 'clickable-icon')
+                manageButtonLink.setAttribute('data-position', 'bottom')
+                manageButtonLink.setAttribute('data-tooltip', 'Manage')
+                manageButtonLink.appendChild(manageButton)
+                manageButtonLink.addEventListener('click', ev => ev.shouldFire = false)
+                M.Tooltip.init(manageButtonLink)
+            }
             updateButtons()
         }
 
@@ -402,6 +417,9 @@ fetch(`/api/queue?page=${page}`).then(async r => {
             iconsContainer.appendChild(approveButton)
             iconsContainer.appendChild(unapproveButton)
             iconsContainer.appendChild(rejectButton)
+            if (me.group === 'admin') {
+                iconsContainer.appendChild(manageButtonLink)
+            }
         }
         notesFromMapperTextContainer.appendChild(notesFromMapperText)
         notesFromModderTextContainer.appendChild(notesFromModderText)

@@ -36,13 +36,14 @@ module.exports = {
             const lowestSR = maps.length === 0 ? 0 : maps[0]['difficulty_rating']
             const highestSR = maps.length === 0 ? 0 : maps[maps.length - 1]['difficulty_rating']
             await sql.execute(
-                "UPDATE beatmaps SET `artist` = ?, `title` = ?, `status` = ?, `date` = now(), `highest_sr` = ?, `lowest_sr` = ? WHERE beatmapset_id = ?",
+                "UPDATE beatmaps SET `artist` = ?, `title` = ?, `status` = ?, `date` = now(), `highest_sr` = ?, `lowest_sr` = ?, fullname = ? WHERE beatmapset_id = ?",
                 res['artist'],
                 res['title'],
                 res['status'],
                 beatmapSetId,
                 highestSR,
                 lowestSR,
+                `${res['artist']} - ${res['title']}`,
             )
             queuedBeatmapSetUpdates = queuedBeatmapSetUpdates.filter(b => b !== beatmapSetId)
             debug(`Updated beatmapset ${beatmapSetId}`)

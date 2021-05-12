@@ -10,6 +10,7 @@ const debugEnabled = process.env.APP_ENV === 'development'
 if (debugEnabled && !process.env.DEBUG) {
   process.env.DEBUG = 'mod.acrylicstyle.xyz:*'
 }
+const { validateAndGetSession, getUser } = require("./src/util")
 const debug = require('debug')('mod.acrylicstyle.xyz:app')
 
 sql.query('SELECT 1').then(async () => {
@@ -91,8 +92,9 @@ sql.query('SELECT 1').then(async () => {
   \`date\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`lowest_sr\` float NOT NULL DEFAULT 0,
   \`highest_sr\` float NOT NULL DEFAULT 0,
-  \`artist\` varchar(255) NOT NULL,
-  \`title\` varchar(255) NOT NULL,
+  \`artist\` varchar(512) NOT NULL,
+  \`title\` varchar(512) NOT NULL,
+  \`fullname\` varchar(512) NOT NULL,
   PRIMARY KEY (\`beatmapset_id\`)
 )`)
       // all possible status values:
@@ -107,14 +109,16 @@ sql.query('SELECT 1').then(async () => {
   process.kill(process.pid, 'SIGINT')
 })
 
-const indexRouter = require('./routes/index');
-const loginRouter = require('./routes/login');
+const indexRouter = require('./routes/index')
+const loginRouter = require('./routes/login')
 const apiRouter = require('./routes/api')
+const adminRouter = require('./routes/admin')
 
 const app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs')
 
 // noinspection JSUnusedGlobalSymbols,JSCheckFunctionSignatures
 app.use(logger('dev', {
@@ -132,21 +136,49 @@ app.use(serverTiming({
   enabled: debugEnabled,
 }))
 
+app.use('/admin', async (req, res, next) => {
+  const session = validateAndGetSession(req)
+  if (!session) return res.status(401).send({ error: 'unauthorized' })
+  const user = req.user = await getUser(session.access_token, session.user_id)
+  if (!user || user.group !== 'admin') {
+    return res.status(401).send({ error: 'unauthorized' })
+  }
+  next()
+})
+
 app.use('/', indexRouter)
 app.use('/', loginRouter)
 app.use('/api', apiRouter)
+app.use('/admin', adminRouter)
 
-app.use((req, res, next) => {
-  next(createError(404))
+app.get('/500', (req, res) => {
+  throw new Error('something broke')
 })
 
-app.use((err, req, res, next) => {
+app.use((req, res, next) => {
+  res.sendFile(path.resolve('static/404.html'))
+})
+
+app.use(async (err, req, res, next) => {
   // set locals, only providing error in development
   res.locals.message = err.message
   res.locals.error = req.app.get('env') === 'development' ? err : {}
 
+  if (debugEnabled) {
+    debug('an error occurred:', err.stack || err)
+  }
   // render the error page
-  res.status(err.status || 500).send({ something_broke: 'something went wrong' })
+  if (req.headers['accept'] === 'application/json') {
+    res.status(err.status || 500).send({something_broke: 'something went wrong'})
+  } else {
+    const session = validateAndGetSession(req)
+    let stack = null
+    if (session) {
+      const user = await getUser(session.access_token, session.user_id)
+      if (user.group === 'admin') stack = err.stack
+    }
+    res.status(err.status || 500).render('500', { extraDataAvailable: !!stack, extraData: stack })
+  }
 });
 
 module.exports = app

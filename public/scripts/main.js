@@ -167,6 +167,7 @@ fetch('/me').then(async res => {
     if (logInOutElement.getAttribute('data-redirect-to')) {
         redirect = '?redirect_to=' + logInOutElement.getAttribute('data-redirect-to')
     }
+    const size = parseInt(logInOutElement.getAttribute('data-avatar-size') || 56)
     const data = await res.json()
     if (res.status !== 200 || data['error']) {
         meData = null
@@ -175,7 +176,7 @@ fetch('/me').then(async res => {
         // noinspection HtmlUnknownTarget
         const el = `<a href="/login${redirect}" class="flex-center">Login<i class="material-icons" style="color: #0f0; margin-left: 10px;">login</i></a>`
         logInOutElement.innerHTML = el
-        logInOutMobileElement.innerHTML = el
+        if (logInOutMobileElement) logInOutMobileElement.innerHTML = el
         if (data['error'] !== 'login_required') {
             toast('Unknown error fetching user data: ' + data['error'])
         }
@@ -185,9 +186,9 @@ fetch('/me').then(async res => {
     meCallbacks.forEach(cb => cb(meData))
     logInOutElement.setAttribute('data-tooltip', `Logged in as ${data['username']}. Click to logout.`)
     // noinspection HtmlUnknownTarget
-    const el = `<a href="/logout${redirect}" class="avatar-link"><img width="56" height="56" class="avatar left" src="${data['avatar_url']}" alt="avatar"/><i class="material-icons" style="color: #ff2b2b">logout</i></a>`
+    const el = `<a href="/logout${redirect}" class="avatar-link"><img width="${size}" height="${size}" class="avatar left" src="${data['avatar_url']}" alt="avatar"/><i class="material-icons" style="color: #ff2b2b">logout</i></a>`
     logInOutElement.innerHTML = el
-    logInOutMobileElement.innerHTML = el
+    if (logInOutMobileElement) logInOutMobileElement.innerHTML = el
     if (authStatus === 'logged_in') {
         toast(`Hello ${data['username']}! (Logged in as ${data['group']})`)
     }

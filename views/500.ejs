@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <title>something broke</title>
+        <meta charset="UTF-8">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@materializecss/materialize@1.1.0-alpha/dist/css/materialize.min.css" />
+        <link rel="stylesheet" href="/css/main.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    </head>
+    <body>
+        <nav>
+            <div class="nav-wrapper">
+                <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+                <ul id="nav-mobile" class="hide-on-med-and-down" style="display: flex; justify-content: center;">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/requests">Mod Requests</a></li>
+                    <li><a href="/queue">Modding Queue</a></li>
+                    <li id="log-in-out" class="tooltipped" data-position="bottom"></li>
+                </ul>
+            </div>
+        </nav>
+        <ul class="sidenav" id="mobile-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/requests">Mod Requests</a></li>
+            <li><a href="/queue">Modding Queue</a></li>
+            <li id="log-in-out-mobile"></li>
+        </ul>
+        <div class="container">
+            <div class="col s12">
+                <p>something broke</p>
+                <hr>
+                <p>something went wrong. you could retry or go back, though.</p>
+                <% if (extraDataAvailable) { %>
+                <hr>
+                <p>extra information (only visible to admins!):</p>
+                <pre><%- extraData %></pre>
+                <% } %>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/@materializecss/materialize@1.1.0-alpha/dist/js/materialize.min.js"></script>
+        <script type="text/javascript" src="/scripts/main.js"></script>
+    </body>
+</html>

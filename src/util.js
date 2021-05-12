@@ -90,7 +90,7 @@ const getBeatmapSet = async (token, beatmapSetId = 0) => {
         const lowestSR = maps.length === 0 ? 0 : maps[0]['difficulty_rating']
         const highestSR = maps.length === 0 ? 0 : maps[maps.length - 1]['difficulty_rating']
         await sql.execute(
-            "INSERT INTO beatmaps (`beatmapset_id`, `user_id`, `status`, `lowest_sr`, `highest_sr`, `artist`, `title`) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO beatmaps (`beatmapset_id`, `user_id`, `status`, `lowest_sr`, `highest_sr`, `artist`, `title`, `fullname`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             beatmapSetApi['id'],
             beatmapSetApi['user_id'],
             beatmapSetApi['status'],
@@ -98,6 +98,7 @@ const getBeatmapSet = async (token, beatmapSetId = 0) => {
             highestSR,
             beatmapSetApi['artist'],
             beatmapSetApi['title'],
+            `${beatmapSetApi['artist']} - ${beatmapSetApi['title']}`,
         )
         beatmapSet = {}
         beatmapSet.beatmapset_id = beatmapSetApi['id']
@@ -109,6 +110,7 @@ const getBeatmapSet = async (token, beatmapSetId = 0) => {
         beatmapSet.artist = beatmapSetApi['artist']
         beatmapSet.title = beatmapSetApi['title']
         beatmapSet.status_code = 200 // its always 200
+        beatmapSet.fullname = `${beatmapSetApi['artist']} - ${beatmapSetApi['title']}`
     }
     await getUser(token, beatmapSet.user_id) // user information (like username) could be missing, so we must update now
     if (beatmapSet.date.getTime() + getUpdateTime(beatmapSet.status) < Date.now()) queueBeatmapSetUpdate(token, beatmapSetId)
