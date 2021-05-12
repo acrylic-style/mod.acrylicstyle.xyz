@@ -167,7 +167,7 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         const submittedAt = new Date(e.date)
         const datetime = document.createElement('span')
         datetime.textContent = readableTime(submittedAt.getTime() - Date.now())
-        datetime.classList.add('tooltipped')
+        datetime.classList.add('tooltipped', 'card-time')
         datetime.setAttribute('data-position', 'top')
         datetime.setAttribute('data-tooltip', submittedAt.toString())
         M.Tooltip.init(datetime)
