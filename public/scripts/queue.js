@@ -106,6 +106,7 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         titleContainer.classList.add('text-truncate')
         const title = document.createElement('a')
         title.href = `https://osu.ppy.sh/beatmapsets/${e.beatmapset_id}`
+        title.rel = 'noopener'
         title.textContent = `${e.beatmapset.artist} - ${e.beatmapset.title}`
         title.target = '_blank'
         title.classList.add('tooltipped')
@@ -121,6 +122,7 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         const mapperBold = document.createElement('b')
         const mapperLink = document.createElement('a')
         mapperLink.href = `https://osu.ppy.sh/users/${e.beatmapset.user.id}`
+        mapperLink.rel = 'noopener'
         mapperLink.textContent = e.beatmapset.user.username
         mapperLink.target = '_blank'
         if (e.beatmapset.user.id === e.user.id && e.user['mod_queue_banned']) {

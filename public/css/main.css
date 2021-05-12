@@ -1,3 +1,7 @@
+a {
+  color: #c983ff;
+}
+
 .row {
   display: flex;
   flex-wrap: wrap;

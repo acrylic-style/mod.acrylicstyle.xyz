@@ -185,7 +185,7 @@ fetch('/me').then(async res => {
     meCallbacks.forEach(cb => cb(meData))
     logInOutElement.setAttribute('data-tooltip', `Logged in as ${data['username']}. Click to logout.`)
     // noinspection HtmlUnknownTarget
-    const el = `<a href="/logout${redirect}" class="avatar-link"><img width="56" height="56" class="avatar left" src="${data['avatar_url']}" alt="avatar"/><i class="material-icons" style="color: #d00">logout</i></a>`
+    const el = `<a href="/logout${redirect}" class="avatar-link"><img width="56" height="56" class="avatar left" src="${data['avatar_url']}" alt="avatar"/><i class="material-icons" style="color: #ff2b2b">logout</i></a>`
     logInOutElement.innerHTML = el
     logInOutMobileElement.innerHTML = el
     if (authStatus === 'logged_in') {
