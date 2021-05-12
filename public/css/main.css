@@ -17,6 +17,11 @@ a {
   align-items: center;
 }
 
+.flex-center {
+  display: flex;
+  align-items: center;
+}
+
 nav {
   background-color: #22282a;
 }
@@ -348,4 +353,13 @@ nav ul li:hover {
   overflow: hidden;
   overflow-wrap: break-word;
   margin-right: 20px;
+}
+
+nav ul li {
+  width: 150px;
+  text-align: center;
+}
+
+nav ul a {
+  justify-content: center;
 }

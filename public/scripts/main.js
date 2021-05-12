@@ -173,7 +173,7 @@ fetch('/me').then(async res => {
         meCallbacks.forEach(cb => cb(meData))
         logInOutElement.setAttribute('data-tooltip', 'You are currently not logged in. Click to login.')
         // noinspection HtmlUnknownTarget
-        const el = `<a href="/login${redirect}"><i class="material-icons" style="color: #0f0">login</i></a>`
+        const el = `<a href="/login${redirect}" class="flex-center">Login<i class="material-icons" style="color: #0f0; margin-left: 10px;">login</i></a>`
         logInOutElement.innerHTML = el
         logInOutMobileElement.innerHTML = el
         if (data['error'] !== 'login_required') {
