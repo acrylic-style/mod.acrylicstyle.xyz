@@ -48,6 +48,7 @@ module.exports = token => {
         getBeatmap: (beatmapId = 0) => request(token, `beatmaps/${beatmapId}`),
         // example: https://paste.acrylicstyle.xyz/qavipoqoge.yaml
         getBeatmapSet: (beatmapSetId = 0) => request(token, `beatmapsets/${beatmapSetId}`),
+        getUser: (userId = 0, mode = '') => request(token, `users/${userId}/${mode}`)
         //lookupBeatmapSet: () => Promise.resolve(),
     }
 }

@@ -110,15 +110,60 @@ const getBeatmapSet = async (token, beatmapSetId = 0) => {
         beatmapSet.title = beatmapSetApi['title']
         beatmapSet.status_code = 200 // its always 200
     }
+    await getUser(token, beatmapSet.user_id) // user information (like username) could be missing, so we must update now
     if (beatmapSet.date.getTime() + getUpdateTime(beatmapSet.status) < Date.now()) queueBeatmapSetUpdate(token, beatmapSetId)
     beatmapSet.status_code = 200
     return beatmapSet
+}
+
+// nullable
+const getUser = async (token, userId = 0) => {
+    const user = await sql.findOne("SELECT * FROM users WHERE `id` = ?", userId)
+    // update user every 30 days
+    if (user && user['last_update'].getTime() + 1000 * 60 * 60 * 24 * 30 > Date.now()) return user
+    const data = await osu(token).getUser(userId)
+    if (data.status_code !== 200) {
+        // no luck
+        return null
+    }
+    await sql.execute(
+        "INSERT IGNORE INTO users (`id`, `username`, `country_code`, `country_name`, `avatar_url`, `title`, `profile_colour`) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        data.id,
+        data.username,
+        data.country?.code || 'XX',
+        data.country?.name || 'XX',
+        data.avatar_url,
+        data.title,
+        data.profile_colour
+    )
+    return {
+        id: data.id,
+        username: data.username,
+        country_code: data.country?.code || 'XX',
+        country_name: data.country?.name || 'XX',
+        avatar_url: data.avatar_url,
+        title: data.title,
+        profile_colour: data.profile_colour
+    }
 }
 
 const getUpdateTime = (status) => {
     let days = 60
     if (status === 'graveyard' || status === 'pending' || status === 'wip' || status === 'qualified') days = 3
     return 1000 * 60 * 60 * 24 * days
+}
+
+const pushEvent = async (requestId = -1, type = '', userId = -1, description = '') => {
+    if (requestId === -1 || !requestId) throw new Error(`Invalid request id: ${requestId}`)
+    if (userId === -1 || !userId) throw new Error(`Invalid user id: ${userId}`)
+    if (type === '' || !type) throw new Error('Empty event type')
+    await sql.execute(
+        "INSERT INTO request_events (`request_id`, `type`, `user_id`, `description`) VALUES (?, ?, ?, ?)",
+        requestId,
+        type,
+        userId,
+        description,
+    )
 }
 
 module.exports = {
@@ -132,4 +177,6 @@ module.exports = {
     readableTime,
     getBeatmapSet,
     getUpdateTime,
+    pushEvent,
+    getUser,
 }

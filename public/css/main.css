@@ -1,5 +1,6 @@
 .row {
   display: flex;
+  flex-wrap: wrap;
 }
 
 .avatar {
@@ -49,6 +50,11 @@ input {
   #maps {
     flex-direction: column;
   }
+
+  .col-m {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
 }
 
 .col-l, .col-m {
@@ -56,13 +62,6 @@ input {
   width: 100%;
   padding-right: 15px;
   padding-left: 15px;
-}
-
-@media (min-width: 768px) {
-  .col-m {
-    flex: 0 0 50%;
-    max-width: 50%;
-  }
 }
 
 @media (min-width: 992px) {
@@ -92,6 +91,10 @@ body {
 
 .float-left {
   float: left !important;
+}
+
+.float-right {
+  float: right !important;
 }
 
 h2 {
@@ -144,21 +147,68 @@ h2 {
   z-index: 0;
 }
 
+#request-details {
+  display: flex;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50%;
+  height: 80%;
+  background-color: #2d3b42;
+  overflow-wrap: break-word;
+  cursor: default;
+}
+
+@media (max-width: 1100px) {
+  #request-details {
+    width: 60%;
+  }
+}
+
+@media (max-width: 900px) {
+  #request-details {
+    width: 75%;
+  }
+}
+
+.request-details-events {
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-wrap: break-word;
+  max-height: 90%;
+  max-width: 100%;
+}
+
+.request-event-type-submitted {
+  color: #07ec07;
+}
+
+.request-event-type-approved {
+  color: #07ec07;
+}
+
+.request-event-type-rejected {
+  color: #dc0e0e;
+}
+
+.request-event-type-finished {
+  color: #07ec07;
+}
+
+.request-event-type-unapproved {
+  color: #dc0e0e;
+}
+
+.hidden {
+  visibility: hidden;
+  display: none;
+}
+
 .card-body {
   flex: 1 1 auto;
   min-height: 1px;
   padding: 1.25rem;
-}
-
-.card-img {
-  border-radius: calc(.25rem - 1px);
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  opacity: 0.3;
-  overflow: hidden;
-  object-fit: cover;
-  flex-shrink: 0;
 }
 
 .card-container {
@@ -196,15 +246,23 @@ h2 {
 }
 
 .card-icons {
-  margin-top: 5px;
   display: flex;
   align-items: center;
   float: right;
-  text-align: right;
+  text-align: center;
+  margin-top: auto;
+  margin-left: -6px;
+  width: calc(100% + 6px);
+}
+
+.card-icons>i.material-icons {
+  width: 34px;
+  height: 34px;
+  line-height: 34px;
 }
 
 .approval-status-pending {
-  color: #f38f38;
+  color: #ffd400;
 }
 
 .approval-status-rejected {
@@ -213,6 +271,20 @@ h2 {
 
 .approval-status-done {
   color: #00ff00;
+}
+
+.perfectly-rounded {
+  border-radius: 9999px;
+}
+
+.clickable-icon {
+  border-radius: 9999px;
+  transition: 150ms ease-in-out;
+  cursor: pointer;
+}
+
+.clickable-icon:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .sr-spread {
@@ -225,4 +297,44 @@ nav ul li.active {
 
 nav ul li:hover {
   background-color: rgba(0, 0, 0, 0.2);
+}
+
+.request-event-entries {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.request-event-entries-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2px 0;
+  line-height: 22px;
+}
+
+.request-event-entries-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+}
+
+.request-event-entries-icon {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  align-self: flex-start;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-right: 5px;
+  font-size: 14px;
+}
+
+.request-event-entries-text {
+  overflow: hidden;
+  overflow-wrap: break-word;
+  margin-right: 20px;
 }

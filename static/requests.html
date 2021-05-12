@@ -15,9 +15,7 @@
                     <li><a href="/">Home</a></li>
                     <li class="active"><a href="/requests">Mod Requests</a></li>
                     <li><a href="/queue">Modding Queue</a></li>
-                    <!-- Redirecting to this page causes infinity login loop so we don't do that -->
-                    <!-- You will automatically be redirected to login page so redirect tag for login is not needed -->
-                    <li id="log-in-out" class="tooltipped" data-position="bottom"></li>
+                    <li id="log-in-out" class="tooltipped" data-position="bottom" data-redirect-to="requests"></li>
                 </ul>
             </div>
         </nav>
@@ -37,11 +35,12 @@
                     <ul class="browser-default">
                         <li>You can submit a beatmap once every 2 weeks</li>
                         <li>No tech maps</li>
-                        <li>No maps that has 8+ star rating</li>
+                        <li>No maps that has 7+ star rating</li>
                         <li>Beatmap must be pending or WIP</li>
                         <li>Set your map's language/genre before submitting (if possible)</li>
                         <li>osu!std only! (taiko, catch, mania will very likely be rejected)</li>
                         <li>Do not hit submit button than once. Excessive requests may leads to a ban on your account.</li>
+                        <li>Mod request from restricted/banned/silenced user will be rejected.</li>
                     </ul>
                 </div>
             </div>
@@ -61,7 +60,7 @@
                     </div>
                     <div class="row">
                         <div class="col s12">
-                            <button class="btn waves-effect waves-light" type="submit" id="submit-button">Submit<i class="material-icons right">send</i></button>
+                            <button class="btn waves-effect waves-light" type="submit" id="submit-button" disabled><span id="submit-button-label">Login to submit</span><i class="material-icons right">send</i></button>
                         </div>
                     </div>
                 </div>

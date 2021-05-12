@@ -58,6 +58,29 @@ sql.query('SELECT 1').then(async () => {
       debug('Created requests table')
     }
   })
+  await sql.findOne('SHOW TABLES LIKE "request_events"').then(res => {
+    if (!res) {
+      debug('Creating request_events table')
+      sql.execute(`CREATE TABLE request_events (
+  \`id\` int unsigned NOT NULL AUTO_INCREMENT,
+  \`request_id\` int unsigned NOT NULL,
+  \`type\` varchar(255) NOT NULL,
+  \`user_id\` int unsigned NOT NULL,
+  \`description\` varchar(2000) NOT NULL,
+  \`date\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`)
+)`)
+      // current valid types (-> request.status):
+      //              submitted - mapper has submitted mod request (-> submitted)
+      //      comment-by-mapper - a comment was posted by mapper
+      //      comment-by-modder - a comment was posted by modder
+      //               approved - the request was approved and is now pending for mods (-> pending)
+      //               rejected - the request was rejected (-> rejected)
+      //             unapproved - the request was approved before but has been unapproved (-> submitted)
+      //               finished - modder has finished modding the map (-> done)
+      debug('Created request_events table')
+    }
+  })
   await sql.findOne('SHOW TABLES LIKE "beatmaps"').then(res => {
     if (!res) {
       debug('Creating beatmaps table')

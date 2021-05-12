@@ -29,9 +29,21 @@
             <div class="card-container row">
                 <div class="col s12">
                     <section class="card">
-                        <h2>Modding queue / Submitted maps</h2>
+                        <h2 id="label">All submitted requests (? / ?)</h2>
                         <div class="row" id="maps"></div>
                     </section>
+                </div>
+            </div>
+        </div>
+        <div class="dark-overlay"></div>
+        <div id="request-details" class="card z-depth-5 hidden" style="opacity: 0">
+            <div class="card-body">
+                <div class="card-comment">
+                    <p>Mod Request Events</p>
+                </div>
+                <hr>
+                <div class="request-details-events">
+                    <ul class="request-event-entries" id="req-events"></ul>
                 </div>
             </div>
         </div>
