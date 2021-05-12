@@ -120,6 +120,7 @@ h2 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: inline-block;
 }
 
 .card {
@@ -144,6 +145,7 @@ h2 {
 .card-comment {
   display: flex;
   align-items: center;
+  height: 24px;
 }
 
 .card-time {

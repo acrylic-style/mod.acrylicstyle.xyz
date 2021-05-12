@@ -101,9 +101,11 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         const cardBody = document.createElement('div')
         cardBody.classList.add('card-body')
 
+        const truncate = document.createElement('div')
+        truncate.classList.add('text-truncate')
+
         // song title
-        const titleContainer = document.createElement('div')
-        titleContainer.classList.add('text-truncate')
+        const titleContainer = truncate.cloneNode(true)
         const title = document.createElement('a')
         title.href = `https://osu.ppy.sh/beatmapsets/${e.beatmapset_id}`
         title.rel = 'noopener'
@@ -146,6 +148,7 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         // comment from mapper
         const notesFromMapper = document.createElement('div')
         notesFromMapper.classList.add('card-comment', 'hidden')
+        const notesFromMapperTextContainer = truncate.cloneNode(true)
         const notesFromMapperText = document.createElement('span')
         const updateMapperComment = () => {
             notesFromMapper.classList.toggle('hidden', !e['comment_by_mapper'])
@@ -156,6 +159,7 @@ fetch(`/api/queue?page=${page}`).then(async r => {
         // comment from modder
         const notesFromModder = document.createElement('div')
         notesFromModder.classList.add('card-comment', 'hidden')
+        const notesFromModderTextContainer = truncate.cloneNode(true)
         const notesFromModderText = document.createElement('span')
         const updateModderComment = () => {
             notesFromModder.classList.toggle('hidden', !e['comment_by_modder'])
@@ -399,10 +403,12 @@ fetch(`/api/queue?page=${page}`).then(async r => {
             iconsContainer.appendChild(unapproveButton)
             iconsContainer.appendChild(rejectButton)
         }
+        notesFromMapperTextContainer.appendChild(notesFromMapperText)
+        notesFromModderTextContainer.appendChild(notesFromModderText)
         notesFromMapper.appendChild(notesIcon.cloneNode(true))
-        notesFromMapper.appendChild(notesFromMapperText)
+        notesFromMapper.appendChild(notesFromMapperTextContainer)
         notesFromModder.appendChild(notesIcon.cloneNode(true))
-        notesFromModder.appendChild(notesFromModderText)
+        notesFromModder.appendChild(notesFromModderTextContainer)
         mapperBold.appendChild(mapperLink)
         mapperContainer.appendChild(mapperText)
         mapperContainer.appendChild(mapperBold)
