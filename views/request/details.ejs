@@ -1,12 +1,40 @@
 <!DOCTYPE HTML>
 <html lang="en">
     <head>
-        <title> - Mod request details | admin</title>
+        <title><%- fullname %> - Mod request details | admin</title>
         <%- include('../head-header'); %>
     </head>
     <body>
         <%- include('../body-header'); %>
+        <div class="container" style="margin-top: 1%;">
+            <div class="row">
+                <div class="col s12">
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <input id="commentByMapper" type="text" />
+                            <label for="commentByMapper">Comment by mapper</label>
+                        </div>
+                        <div class="input-field col s12">
+                            <input id="commentByModder" type="text" />
+                            <label for="commentByModder">Comment by modder</label>
+                        </div>
+                        <div class="col s12">
+                            <button id="save-button" class="btn blue waves-effect" onclick="save()">Save</button>
+                            <button class="btn green waves-effect" onclick="queuePage()">Modding queue page</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s12">
+                            <a href="/admin/users/<%- mapper_id %>" class="btn teal waves-effect" onclick="userPage()">Open mapper user admin page</a>
+                            <a href="/admin/users/<%- submitter_id %>" class="btn teal waves-effect" onclick="userPage()">Open requester user admin page</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <script src="https://cdn.jsdelivr.net/npm/@materializecss/materialize@1.1.0-alpha/dist/js/materialize.min.js"></script>
         <script type="text/javascript" src="/scripts/main.js"></script>
+        <script type="application/json" id="json-request"><%- request %></script>
+        <script type="text/javascript" src="/scripts/admin/request/details.js"></script>
     </body>
 </html>

@@ -80,6 +80,7 @@ const readableTime = time => {
  */
 const getBeatmapSet = async (token, beatmapSetId = 0) => {
     let beatmapSet = await sql.findOne("SELECT * FROM beatmaps WHERE beatmapset_id = ?", beatmapSetId)
+    if (!token) return beatmapSet
     if (!beatmapSet) {
         const beatmapSetApi = await osu(token).getBeatmapSet(beatmapSetId)
         if (beatmapSetApi.status_code !== 200) {
@@ -121,6 +122,7 @@ const getBeatmapSet = async (token, beatmapSetId = 0) => {
 // nullable
 const getUser = async (token, userId = 0) => {
     const user = await sql.findOne("SELECT * FROM users WHERE `id` = ?", userId)
+    if (!token) return user
     // update user every 30 days
     if (user && user['last_update'].getTime() + 1000 * 60 * 60 * 24 * 30 > Date.now()) return user
     const data = await osu(token).getUser(userId)

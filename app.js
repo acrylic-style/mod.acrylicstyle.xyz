@@ -136,8 +136,19 @@ app.use(serverTiming({
   enabled: debugEnabled,
 }))
 
+app.use((req, res, next) => {
+  res.send404 = () => {
+    if (req.headers['accept'] === 'application/json') {
+      res.status(404).send({ error: 'not_found' })
+    } else {
+      res.sendFile(path.resolve('static/404.html'))
+    }
+  }
+  next()
+})
+
 app.use('/admin', async (req, res, next) => {
-  const session = validateAndGetSession(req)
+  const session = req.session = validateAndGetSession(req)
   if (!session) return res.status(401).send({ error: 'unauthorized' })
   const user = req.user = await getUser(session.access_token, session.user_id)
   if (!user || user.group !== 'admin') {
