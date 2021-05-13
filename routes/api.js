@@ -1,12 +1,10 @@
 const express = require('express')
 const router = express.Router()
-const { validateAndGetSession, readableTime, getUpdateTime, getBeatmapSet, pushEvent } = require('../src/util')
+const { validateAndGetSession, readableTime, getUpdateTime, getBeatmapSet, pushEvent, getIPAddress } = require('../src/util')
 const sql = require('../src/sql')
 const { queueBeatmapSetUpdate } = require ('../src/backgroundTask')
 
 const getQueue = async (token = null, page = -1, userId = -1) => {
-    const count = (await sql.findOne('SELECT COUNT(*) AS total_requests FROM requests'))['total_requests']
-    if (count === 0) return { max_entries: 0, entries: [] } // just send empty response
     const values = []
     let where = ''
     let limit = ''
@@ -14,7 +12,9 @@ const getQueue = async (token = null, page = -1, userId = -1) => {
         where += 'user_id = ? '
         values.push(userId)
     }
-    if (page !== -1) {
+    const count = (await sql.findOne(`SELECT COUNT(*) AS total_requests FROM requests ${where === '' ? '' : ('WHERE ' + where)}`, ...values))['total_requests']
+    if (count === 0) return { max_entries: 0, entries: [] } // just send empty response
+    if (page >= 0) {
         limit = `LIMIT ${page * 50}, 50`
     }
     const result = await sql.findAll(`SELECT * FROM requests ${where === '' ? '' : ('WHERE ' + where)}${limit}`, ...values)
@@ -61,10 +61,23 @@ const getQueue = async (token = null, page = -1, userId = -1) => {
     return { max_entries: count, entries: result }
 }
 
-// no auth
+// optional auth
 router.get('/queue', async (req, res) => {
     const session = validateAndGetSession(req)
     res.send(await getQueue(session?.access_token, Math.max(0, req.query['page'] || 0)))
+})
+
+router.get('/queue/:id', async (req, res) => {
+    const id = Math.max(parseInt(req.params.id || '0'), 0)
+    if (id !== id) return res.status(400).send({ error: 'invalid_params' })
+    const request = await sql.findOne('SELECT * FROM requests WHERE id = ?', id)
+    if (!request) return res.status(404).send({ error: 'not_found' })
+    const beatmapset = await sql.findOne('SELECT * FROM beatmaps WHERE beatmapset_id = ?', request.beatmapset_id)
+    const users = await sql.findAll('SELECT * FROM users WHERE id = ? OR id = ?', request.user_id, (beatmapset?.user_id || 0))
+    if (beatmapset) beatmapset.user = users.find(u => u.id === beatmapset.user_id)
+    request.beatmapset = beatmapset
+    request.user = users.find(u => u.id === request.user_id)
+    res.send(request)
 })
 
 router.get('/queue/me', async (req, res) => {
@@ -73,7 +86,14 @@ router.get('/queue/me', async (req, res) => {
     res.send(await getQueue(session.access_token, 0, session.user_id))
 })
 
+const recentlySubmitted = []
+
+setInterval(() => recentlySubmitted.length = 0, 1000 * 60)
+
 router.post('/queue/submit', async (req, res) => {
+    const ip = getIPAddress(req)
+    if (recentlySubmitted.includes(ip)) return res.status(429).send({ error: 'too_many_requests' })
+    recentlySubmitted.push(ip)
     const session = validateAndGetSession(req)
     if (!session) return res.status(401).send({ error: 'login_required' })
     if (!req.body) return res.status(400).send({ error: 'invalid_params' })
@@ -89,6 +109,7 @@ router.post('/queue/submit', async (req, res) => {
     // admins cannot bypass the ban :P
     if (user['mod_queue_banned']) return res.status(403).send({ error: 'banned', reason: user['mod_queue_banned_reason'] || null })
     // but admins are allowed to bypass this
+    // 2 weeks (14 days)
     const time = !user['last_submit'] ? 0 : (user['last_submit'].getTime() + 1000 * 60 * 60 * 24 * 14)
     if (user.group !== 'admin' && time > Date.now()) return res.status(400).send({ error: 'time', time: readableTime(time - Date.now()) })
     res.startTime('get_beatmapset', `API Request: beatmapsets/${beatmapSetId}`)
@@ -113,14 +134,21 @@ router.post('/queue/submit', async (req, res) => {
     res.send({ message: 'accepted' })
 })
 
+let queue_edit_comment = {}
+
+setInterval(() => queue_edit_comment = {}, 1000 * 60)
+
 router.post('/queue/edit_comment', async (req, res) => {
+    const ip = getIPAddress(req)
+    if (queue_edit_comment[ip] >= 6) return res.status(429).send({ error: 'too_many_requests' })
+    queue_edit_comment[ip] = (queue_edit_comment[ip] || 0) + 1
     const session = validateAndGetSession(req)
     if (!session) return res.status(401).send({ error: 'login_required' })
     if (!req.body) return res.status(400).send({ error: 'invalid_params' })
     const type = req.body.type.toString()
     if (!type || (type !== 'edit_mapper' && type !== 'edit_modder')) return res.status(400).send({ error: 'invalid_params' })
     const requestId = parseInt(req.body.request_id)
-    if (!requestId) return res.status(400).send({ error: 'invalid_params' })
+    if (!requestId || requestId !== requestId) return res.status(400).send({ error: 'invalid_params' })
     if (req.body['comment'] === null || typeof req.body['comment'] === 'undefined') return res.status(400).send({ error: 'invalid_params' })
     const comment = req.body['comment'].toString()
     if (comment.length > 255) return res.status(400).send({ error: 'invalid_params' })

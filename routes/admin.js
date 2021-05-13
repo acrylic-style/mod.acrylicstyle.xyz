@@ -8,8 +8,11 @@ router.get('/requests/:id', async (req, res) => {
     if (id < 0 || id !== id) return res.send404()
     const request = await sql.findOne('SELECT * FROM requests WHERE id = ?', id)
     if (!request) return res.send404()
-    request.beatmapset = await getBeatmapSet(req.session.access_token, request.beatmapset_id)
-    request.user = await getUser(req.session.access_token, request.user_id)
+    const beatmapset = await getBeatmapSet(req.session.access_token, request.beatmapset_id)
+    const users = await sql.findAll('SELECT * FROM users WHERE id = ? OR id = ?', request.user_id, (beatmapset?.user_id || 0))
+    if (beatmapset) beatmapset.user = users.find(u => u.id === beatmapset.user_id)
+    request.beatmapset = beatmapset
+    request.user = users.find(u => u.id === request.user_id)
     res.render('request/details', {
         fullname: request.beatmapset.fullname,
         submitter_id: request.user_id,

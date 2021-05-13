@@ -1,5 +1,4 @@
 require('dotenv-safe').config()
-const createError = require('http-errors')
 const express = require('express')
 const path = require('path')
 const cookieParser = require('cookie-parser')
@@ -10,7 +9,7 @@ const debugEnabled = process.env.APP_ENV === 'development'
 if (debugEnabled && !process.env.DEBUG) {
   process.env.DEBUG = 'mod.acrylicstyle.xyz:*'
 }
-const { validateAndGetSession, getUser } = require("./src/util")
+const { validateAndGetSession, getUser, getIPAddress } = require("./src/util")
 const debug = require('debug')('mod.acrylicstyle.xyz:app')
 
 sql.query('SELECT 1').then(async () => {
@@ -156,6 +155,18 @@ app.use('/admin', async (req, res, next) => {
   }
   next()
 })
+
+let apiRequests = {}
+
+app.use('/api', (req, res, next) => {
+  const ip = getIPAddress(req)
+  if (apiRequests[ip] >= 60) return res.status(429).send({ error: 'too_many_requests' })
+  apiRequests[ip] = (apiRequests[ip] || 0) + 1
+  next()
+})
+
+// reset rate limit every 1m
+setInterval(() => apiRequests = {}, 1000 * 60)
 
 app.use('/', indexRouter)
 app.use('/', loginRouter)

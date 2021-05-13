@@ -1,10 +1,13 @@
 const commentByMapperElement = document.getElementById('commentByMapper')
 const commentByModderElement = document.getElementById('commentByModder')
 const saveButtonElement = document.getElementById('save-button')
+const cardContainerElement = document.getElementById('card-container')
 const data = JSON.parse(document.getElementById('json-request').textContent)
 
 commentByMapperElement.value = data.comment_by_mapper
 commentByModderElement.value = data.comment_by_modder
+
+renderRequestCard(data).then(el => cardContainerElement.appendChild(el))
 
 async function save() {
     saveButtonElement.disabled = true
