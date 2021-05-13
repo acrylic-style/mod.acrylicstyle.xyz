@@ -641,6 +641,8 @@ async function getConfig() {
     return (cachedConfig = await fetch('/api/config').then(res => res.json()))
 }
 
-history.pushState({}, document.title, location.href.replace(/(.*?)\?.*/, '$1'))
+if (location.href.replace(/(.*?)\?.*/, '$1') !== location.href) {
+    history.pushState({}, document.title, location.href.replace(/(.*?)\?.*/, '$1'))
+}
 
 M.AutoInit(document.body)
