@@ -64,7 +64,7 @@ const getQueue = async (token = null, page = -1, userId = -1) => {
 // no auth
 router.get('/queue', async (req, res) => {
     const session = validateAndGetSession(req)
-    res.send(await getQueue(session?.access_token, req.query['page'] || 0))
+    res.send(await getQueue(session?.access_token, Math.max(0, req.query['page'] || 0)))
 })
 
 router.get('/queue/me', async (req, res) => {
