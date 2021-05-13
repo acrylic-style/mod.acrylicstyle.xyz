@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="en">
     <head>
-        <title><%- fullname %> - Mod request details | admin</title>
+        <title><%- fullname %> - mod request details | admin</title>
         <%- include('../head-header'); %>
     </head>
     <body>
@@ -26,10 +26,21 @@
                     </div>
                     <div class="row">
                         <div class="col s12">
-                            <a href="/admin/users/<%- mapper_id %>" class="btn teal waves-effect" onclick="userPage()">Open mapper user admin page</a>
-                            <a href="/admin/users/<%- submitter_id %>" class="btn teal waves-effect" onclick="userPage()">Open requester user admin page</a>
+                            <a href="/admin/users/<%- mapper_id %>" class="btn teal waves-effect">Open mapper user admin page</a>
+                            <a href="/admin/users/<%- submitter_id %>" class="btn teal waves-effect">Open requester user admin page</a>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div id="request-details" class="card z-depth-5 hidden" style="opacity: 0">
+            <div class="card-body">
+                <div class="card-comment">
+                    <p>Mod Request Events</p>
+                </div>
+                <hr>
+                <div class="request-details-events">
+                    <ul class="request-event-entries" id="req-events"></ul>
                 </div>
             </div>
         </div>
