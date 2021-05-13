@@ -28,6 +28,7 @@ router.get('/requests/:id', async (req, res) => {
     const beatmapset = await getBeatmapSet(req.session.access_token, request.beatmapset_id)
     const users = await sql.findAll('SELECT * FROM users WHERE id = ? OR id = ?', request.user_id, (beatmapset?.user_id || 0))
     if (beatmapset) beatmapset.user = users.find(u => u.id === beatmapset.user_id)
+    request.events = await sql.findAll('SELECT * FROM request_events WHERE request_id = ?', request.id)
     request.beatmapset = beatmapset
     request.user = users.find(u => u.id === request.user_id)
     res.render('request/details', { request })
