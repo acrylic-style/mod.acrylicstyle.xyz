@@ -58,6 +58,8 @@ submitButtonElement.addEventListener('click', ev => {
                 toast(`Error: You can't request mod yet!\nYou will be able to request mod ${data['time']}.`) // soon (<60 seconds), in x days, in x weeks
             } else if (error === 'banned') {
                 toast(`Error: You are banned from using the mod request system.\nReason: ${data['reason']}`)
+            } else if (error === 'closed') {
+                toast('Error: Mod request is currently closed.')
             } else {
                 toast('Error: Unknown error during submitting mod request: ' + error)
             }
@@ -67,7 +69,16 @@ submitButtonElement.addEventListener('click', ev => {
     })
 })
 
-me(v => {
-    submitButtonElement.disabled = !v
-    submitButtonLabelElement.textContent = v ? 'Submit' : 'Login to submit'
+me(async v => {
+    const config = await getConfig()
+    if (config.requests.status === 'closed' && (!v || v.group !== 'modder' && v.group !== 'admin')) {
+        submitButtonElement.disabled = true
+        submitButtonLabelElement.textContent = 'Mod Request is closed'
+    } else if (!v) {
+        submitButtonElement.disabled = true
+        submitButtonLabelElement.textContent = 'Login to submit'
+    } else {
+        submitButtonElement.disabled = false
+        submitButtonLabelElement.textContent = 'Submit'
+    }
 })

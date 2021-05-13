@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <title>mod requests | admin</title>
+        <%- include('../head-header'); %>
+    </head>
+    <body>
+        <%- include('../body-header'); %>
+        <div class="container" style="margin-top: 1%;">
+            <div class="card-container row">
+                <div class="col s12">
+                    <section class="card">
+                        <h2>Mod request status: <span id="status-label"></span></h2>
+                        <button class="btn blue waves-effect" onclick="openQueue()">Open</button>
+                        <button class="btn red waves-effect" onclick="closeQueue()">Close</button>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/@materializecss/materialize@1.1.0-alpha/dist/js/materialize.min.js"></script>
+        <script type="text/javascript" src="/scripts/main.js"></script>
+        <script type="text/javascript" src="/scripts/admin/request/index.js"></script>
+    </body>
+</html>

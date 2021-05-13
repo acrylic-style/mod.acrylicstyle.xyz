@@ -1,7 +1,24 @@
 const express = require('express')
 const router = express.Router()
-const sql = require('../src/sql')
-const { getBeatmapSet, getUser } = require('../src/util')
+const sql = require('../../src/sql')
+const apiRouter = require('./api')
+const api = require('../api')
+const { getBeatmapSet } = require('../../src/util')
+
+// add api router
+router.use('/api', apiRouter)
+
+router.get('/users/:id', async (req, res) => {
+    const id = parseInt(req.params.id)
+    if (id < 0 || id !== id) return res.send404()
+    const user = await sql.findOne('SELECT * FROM users WHERE id = ?', id)
+    if (!user) return res.send404()
+    res.render('user/details', { user })
+})
+
+router.get('/requests', (req, res) => {
+    res.render('request/index')
+})
 
 router.get('/requests/:id', async (req, res) => {
     const id = parseInt(req.params.id)
@@ -13,12 +30,7 @@ router.get('/requests/:id', async (req, res) => {
     if (beatmapset) beatmapset.user = users.find(u => u.id === beatmapset.user_id)
     request.beatmapset = beatmapset
     request.user = users.find(u => u.id === request.user_id)
-    res.render('request/details', {
-        fullname: request.beatmapset.fullname,
-        submitter_id: request.user_id,
-        mapper_id: request.beatmapset.user_id,
-        request: JSON.stringify(request),
-    })
+    res.render('request/details', { request })
 })
 
 module.exports = router;

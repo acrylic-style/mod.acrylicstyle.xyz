@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="en">
     <head>
-        <title><%- fullname %> - mod request details | admin</title>
+        <title><%- request.beatmapset.fullname %> - mod request details | admin</title>
         <%- include('../head-header'); %>
     </head>
     <body>
@@ -26,8 +26,8 @@
                     </div>
                     <div class="row">
                         <div class="col s12">
-                            <a href="/admin/users/<%- mapper_id %>" class="btn teal waves-effect">Open mapper user admin page</a>
-                            <a href="/admin/users/<%- submitter_id %>" class="btn teal waves-effect">Open requester user admin page</a>
+                            <a href="/admin/users/<%- request.beatmapset.user_id %>" class="btn teal waves-effect">Open mapper user admin page</a>
+                            <a href="/admin/users/<%- request.user_id %>" class="btn teal waves-effect">Open requester user admin page</a>
                         </div>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
         </div>
         <script src="https://cdn.jsdelivr.net/npm/@materializecss/materialize@1.1.0-alpha/dist/js/materialize.min.js"></script>
         <script type="text/javascript" src="/scripts/main.js"></script>
-        <script type="application/json" id="json-request"><%- request %></script>
+        <script type="application/json" id="json-request"><%- JSON.stringify(request) %></script>
         <script type="text/javascript" src="/scripts/admin/request/details.js"></script>
     </body>
 </html>

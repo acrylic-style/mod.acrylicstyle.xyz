@@ -630,6 +630,17 @@ async function renderRequestCard(e) {
     return el
 }
 
+let cachedConfig = null
+
+async function getConfig() {
+    if (cachedConfig) return cachedConfig
+    const configElement = document.getElementById('json-config')
+    if (configElement) {
+        return (cachedConfig = JSON.parse(configElement.textContent))
+    }
+    return (cachedConfig = await fetch('/api/config').then(res => res.json()))
+}
+
 history.pushState({}, document.title, location.href.replace(/(.*?)\?.*/, '$1'))
 
 M.AutoInit(document.body)

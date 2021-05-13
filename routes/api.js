@@ -3,8 +3,9 @@ const router = express.Router()
 const { validateAndGetSession, readableTime, getUpdateTime, getBeatmapSet, pushEvent, getIPAddress } = require('../src/util')
 const sql = require('../src/sql')
 const { queueBeatmapSetUpdate } = require ('../src/backgroundTask')
+const config = require('../src/config')
 
-const getQueue = async (token = null, page = -1, userId = -1) => {
+const getQueue = module.exports.getQueue = async (token = null, page = -1, userId = -1) => {
     const values = []
     let where = ''
     let limit = ''
@@ -61,6 +62,10 @@ const getQueue = async (token = null, page = -1, userId = -1) => {
     return { max_entries: count, entries: result }
 }
 
+router.get('/config', async (req, res) => {
+    res.send(await config.getConfig())
+})
+
 // optional auth
 router.get('/queue', async (req, res) => {
     const session = validateAndGetSession(req)
@@ -106,6 +111,7 @@ router.post('/queue/submit', async (req, res) => {
     const user = await sql.findOne("SELECT `username`, `last_submit`, `group`, `mod_queue_banned`, `mod_queue_banned_reason` FROM users WHERE id = ?", session.user_id)
     res.endTime('fetch_user')
     if (!user) return res.status(401).send({ error: 'login_required' })
+    if (await config.requests.getStatus() === 'closed' && user.group !== 'modder' && user.group !== 'admin') return res.status(400).send({ error: 'closed' })
     // admins cannot bypass the ban :P
     if (user['mod_queue_banned']) return res.status(403).send({ error: 'banned', reason: user['mod_queue_banned_reason'] || null })
     // but admins are allowed to bypass this

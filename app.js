@@ -14,6 +14,17 @@ const debug = require('debug')('mod.acrylicstyle.xyz:app')
 
 sql.query('SELECT 1').then(async () => {
   debug('Confirmed MySQL connection')
+  await sql.findOne('SHOW TABLES LIKE "config"').then(res => {
+    if (!res) {
+      debug('Creating config table')
+      sql.execute(`CREATE TABLE config (
+  \`key\` varchar(255) NOT NULL,
+  \`value\` text NOT NULL,
+  PRIMARY KEY (\`key\`)
+)`)
+      debug('Created config table')
+    }
+  })
   await sql.findOne('SHOW TABLES LIKE "users"').then(res => {
     if (!res) {
       debug('Creating users table')
@@ -158,9 +169,18 @@ app.use('/admin', async (req, res, next) => {
 
 let apiRequests = {}
 
+const tooManyRequests = [
+    '/config',
+    '/me',
+]
+
 app.use('/api', (req, res, next) => {
+  let limit = 60
+  if (tooManyRequests.includes(req.url)) {
+    limit = 240
+  }
   const ip = getIPAddress(req)
-  if (apiRequests[ip] >= 60) return res.status(429).send({ error: 'too_many_requests' })
+  if (apiRequests[ip] >= limit) return res.status(429).send({ error: 'too_many_requests' })
   apiRequests[ip] = (apiRequests[ip] || 0) + 1
   next()
 })
@@ -178,7 +198,8 @@ app.get('/500', (req, res) => {
 })
 
 app.use((req, res, next) => {
-  res.sendFile(path.resolve('static/404.html'))
+  if (req.headers['accept'] === 'application/json') return res.status(404).send({ error: 'route_not_found' })
+  res.status(404).sendFile(path.resolve('static/404.html'))
 })
 
 app.use(async (err, req, res, next) => {
@@ -191,7 +212,7 @@ app.use(async (err, req, res, next) => {
   }
   // render the error page
   if (req.headers['accept'] === 'application/json') {
-    res.status(err.status || 500).send({something_broke: 'something went wrong'})
+    res.status(err.status || 500).send({ error: 'unknown' })
   } else {
     const session = validateAndGetSession(req)
     let stack = null
