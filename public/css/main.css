@@ -399,3 +399,11 @@ nav ul a {
 .yes-it-is-a-link {
   cursor: pointer;
 }
+
+html {
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+}
+
+.comic-sans, html {
+  font-family: 'Comic Sans', 'Comic Sans MS', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
