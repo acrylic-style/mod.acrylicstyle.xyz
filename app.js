@@ -9,6 +9,7 @@ const config = require('./src/config')
 const debugEnabled = process.env.APP_ENV === 'development'
 const { validateAndGetSession, getUser, getIPAddress } = require("./src/util")
 const debug = require('debug')('mod.acrylicstyle.xyz:app')
+require('simple-git')().fetch()
 
 sql.query('SELECT 1').then(async () => {
   debug('Confirmed MySQL connection')
