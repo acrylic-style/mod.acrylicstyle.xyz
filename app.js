@@ -5,10 +5,8 @@ const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 const sql = require('./src/sql')
 const serverTiming = require('server-timing')
+const config = require('./src/config')
 const debugEnabled = process.env.APP_ENV === 'development'
-if (debugEnabled && !process.env.DEBUG) {
-  process.env.DEBUG = 'mod.acrylicstyle.xyz:*'
-}
 const { validateAndGetSession, getUser, getIPAddress } = require("./src/util")
 const debug = require('debug')('mod.acrylicstyle.xyz:app')
 
@@ -19,9 +17,14 @@ sql.query('SELECT 1').then(async () => {
       debug('Creating config table')
       sql.execute(`CREATE TABLE config (
   \`key\` varchar(255) NOT NULL,
-  \`value\` text NOT NULL,
-  PRIMARY KEY (\`key\`)
+  \`value\` text NOT NULL
 )`)
+      config.requests.setRules([
+          'No tech maps',
+          'Set your map\'s language/genre before submitting (if possible)',
+          'Do not hit submit button than once. Excessive requests may leads to a ban on your account.',
+          'Mod request from restricted/banned/silenced user will be rejected.',
+      ])
       debug('Created config table')
     }
   })
@@ -154,6 +157,23 @@ app.use((req, res, next) => {
       res.sendFile(path.resolve('static/404.html'))
     }
   }
+  res.send500 = async (err) => {
+    if (debugEnabled) {
+      debug('an error occurred:', err.stack || err)
+    }
+    // render the error page
+    if (req.headers['accept'] === 'application/json') {
+      res.status(err.status || 500).send({ error: 'unknown' })
+    } else {
+      const session = validateAndGetSession(req)
+      let stack = null
+      if (session) {
+        const user = await getUser(session.access_token, session.user_id)
+        if (user.group === 'admin') stack = err.stack
+      }
+      res.status(err.status || 500).render('500', { extraDataAvailable: !!stack, extraData: stack })
+    }
+  }
   next()
 })
 
@@ -203,25 +223,7 @@ app.use((req, res, next) => {
 })
 
 app.use(async (err, req, res, next) => {
-  // set locals, only providing error in development
-  res.locals.message = err.message
-  res.locals.error = req.app.get('env') === 'development' ? err : {}
-
-  if (debugEnabled) {
-    debug('an error occurred:', err.stack || err)
-  }
-  // render the error page
-  if (req.headers['accept'] === 'application/json') {
-    res.status(err.status || 500).send({ error: 'unknown' })
-  } else {
-    const session = validateAndGetSession(req)
-    let stack = null
-    if (session) {
-      const user = await getUser(session.access_token, session.user_id)
-      if (user.group === 'admin') stack = err.stack
-    }
-    res.status(err.status || 500).render('500', { extraDataAvailable: !!stack, extraData: stack })
-  }
+  res.send500(err)
 });
 
 module.exports = app

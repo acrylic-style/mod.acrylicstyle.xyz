@@ -63,7 +63,7 @@ const getQueue = module.exports.getQueue = async (token = null, page = -1, userI
 }
 
 router.get('/config', async (req, res) => {
-    res.send(await config.getConfig())
+    res.send(await config.getConfig(true))
 })
 
 // optional auth

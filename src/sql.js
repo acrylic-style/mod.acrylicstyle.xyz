@@ -11,7 +11,10 @@ const pool = mysql.createPool({
 const getConnection = /* async */ () => {
     return new Promise((resolve, reject) =>
         pool.getConnection((err, connection) => {
-                if (err) return reject(err)
+                if (err) {
+                    debug(error)
+                    return reject(err)
+                }
                 resolve(connection)
             }
         )
@@ -27,7 +30,10 @@ const query = (sql, ...values) => {
     return new Promise((resolve, reject) => {
         debug(sql, values)
         pool.query(sql, values, (error, results, fields) => {
-            if (error) return reject(error)
+            if (error) {
+                debug(error)
+                return reject(error)
+            }
             resolve({ results, fields })
         })
     })
@@ -37,7 +43,10 @@ const queryWithConnection = (connection, sql, ...values) => {
     return new Promise((resolve, reject) => {
         debug(sql, values)
         connection.query(sql, values, (error, results, fields) => {
-            if (error) return reject(error)
+            if (error) {
+                debug(error)
+                return reject(error)
+            }
             resolve({ results, fields })
         })
     })
@@ -52,7 +61,10 @@ const execute = (sql, ...values) => {
     return new Promise((resolve, reject) => {
         debug(sql, values)
         pool.query(sql, values, (error) => {
-            if (error) return reject(error)
+            if (error) {
+                debug(error)
+                return reject(error)
+            }
             resolve(null)
         })
     })
@@ -66,7 +78,13 @@ const execute = (sql, ...values) => {
 const findOne = async (sql, ...values) => {
     if (!sql.toLowerCase().startsWith('insert')) return await query(sql, ...values).then(value => value.results[0] || null)
     const connection = await getConnection()
-    await queryWithConnection(connection, sql, ...values).then(value => value.results[0] || null)
+    await queryWithConnection(connection, sql, ...values)
+    return await queryWithConnection(connection, "SELECT LAST_INSERT_ID() AS why").then(value => value.results[0] ? value.results[0]['why'] : null)
+}
+
+const findOneWithConnection = async (connection, sql, ...values) => {
+    const val = await queryWithConnection(connection, sql, ...values).then(value => value.results[0] || null)
+    if (!sql.toLowerCase().startsWith('insert')) return val
     return await queryWithConnection(connection, "SELECT LAST_INSERT_ID() AS why").then(value => value.results[0] ? value.results[0]['why'] : null)
 }
 
@@ -78,8 +96,11 @@ const findOne = async (sql, ...values) => {
 const findAll = (sql, ...values) => query(sql, ...values).then(value => value.results)
 
 module.exports = {
+    getConnection,
     query,
+    queryWithConnection,
     execute,
     findOne,
+    findOneWithConnection,
     findAll,
 }

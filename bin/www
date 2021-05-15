@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 require('dotenv-safe').config()
-const debugEnabled = process.env.APP_ENV === 'development'
-if (debugEnabled && !process.env.DEBUG) {
+if (!process.env.DEBUG) {
   process.env.DEBUG = 'mod.acrylicstyle.xyz:*'
 }
 const app = require('../app')

@@ -1,3 +1,4 @@
+const rulesElement = document.getElementById('rules')
 const beatmapLinkElement = document.getElementById('beatmap_link')
 const commentElement = document.getElementById('comment')
 const submitButtonElement = document.getElementById('submit-button')
@@ -81,4 +82,12 @@ me(async v => {
         submitButtonElement.disabled = false
         submitButtonLabelElement.textContent = 'Submit'
     }
+})
+
+getConfig().then(config => {
+    config.requests.rules.forEach((rule) => {
+        const li = document.createElement('li')
+        li.textContent = rule
+        rulesElement.appendChild(li)
+    })
 })

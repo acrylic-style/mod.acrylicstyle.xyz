@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const sql = require('../../src/sql')
+const config = require('../../src/config')
 const apiRouter = require('./api')
 const api = require('../api')
 const { getBeatmapSet } = require('../../src/util')
@@ -16,8 +17,8 @@ router.get('/users/:id', async (req, res) => {
     res.render('user/details', { user })
 })
 
-router.get('/requests', (req, res) => {
-    res.render('request/index')
+router.get('/requests', async (req, res) => {
+    res.render('request/index', { config: await config.getConfig(true) })
 })
 
 router.get('/requests/:id', async (req, res) => {

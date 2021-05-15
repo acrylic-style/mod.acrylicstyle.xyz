@@ -641,6 +641,24 @@ async function getConfig() {
     return (cachedConfig = await fetch('/api/config').then(res => res.json()))
 }
 
+function materialIcon(icon) {
+    const i = document.createElement('i')
+    i.classList.add('material-icons')
+    i.textContent = icon
+    return i
+}
+
+getConfig().then(config => {
+    const extra = []
+    if (config.git.ahead) {
+        extra.push(`${config.git.ahead} commits ahead`)
+    }
+    if (config.git.behind) {
+        extra.push(`${config.git.behind} commits behind`)
+    }
+    console.log(`Running mod.acrylicstyle.xyz ${config.isDev ? '*development*' : 'production'} build | Commit ${config.commit.slice(0, 10)}${extra.length > 0 ? ' | ' + extra.join(', ') : ''}`)
+})
+
 if (location.href.replace(/(.*?)\?.*/, '$1') !== location.href) {
     history.pushState({}, document.title, location.href.replace(/(.*?)\?.*/, '$1'))
 }
