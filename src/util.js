@@ -1,7 +1,9 @@
 const crypto = require('crypto')
 const osu = require('./osu')
 const sql = require('./sql')
-const { queueBeatmapSetUpdate } = require('./backgroundTask')
+const config = require('./config')
+const { queueBeatmapSetUpdate, queue } = require('./backgroundTask')
+const fetch = require('node-fetch')
 
 const sessions = {}
 
@@ -170,6 +172,31 @@ const pushEvent = async (requestId = -1, type = '', userId = -1, description = '
     )
 }
 
+const pushDiscordWebhook = (title, description, color = 'ffffff') => {
+    config.webhook.getDiscordWebhookURLs().then(urls => {
+        for (const url of urls) {
+            queue(async () => {
+                await fetch(url, {
+                    method: 'post',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        embeds: [
+                            {
+                                title,
+                                description,
+                                color: Math.min(parseInt(color, 16), 0xfffffe),
+                            },
+                        ],
+                    }),
+                })
+            })
+        }
+    })
+}
+
 module.exports = {
     sessions,
     generateSecureRandomString,
@@ -183,4 +210,5 @@ module.exports = {
     getUpdateTime,
     pushEvent,
     getUser,
+    pushDiscordWebhook,
 }

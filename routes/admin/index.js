@@ -18,7 +18,10 @@ router.get('/users/:id', async (req, res) => {
 })
 
 router.get('/requests', async (req, res) => {
-    res.render('request/index', { config: await config.getConfig(true) })
+    res.render('request/index', {
+        config: await config.getConfig(true),
+        discordWebhookURLs: await config.webhook.getDiscordWebhookURLs(),
+    })
 })
 
 router.get('/requests/:id', async (req, res) => {

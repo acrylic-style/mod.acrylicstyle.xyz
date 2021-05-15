@@ -39,6 +39,14 @@ router.get('/max_difficulty', async (req, res) => {
     res.send({ message: 'ok' })
 })
 
+router.post('/update_discord_webhooks', async (req, res) => {
+    if (!req.body) return res.status(400).send({ error: 'invalid_params' })
+    const urls = req.body.urls
+    if (!Array.isArray(urls) || urls.length < 0) return res.status(400).send({ error: 'invalid_params' })
+    await config.webhook.setDiscordWebhookURLs(urls)
+    res.send({ message: 'ok' })
+})
+
 router.post('/save_user', async (req, res) => {
     if (!req.body) return res.status(400).send({ error: 'invalid_params' })
     const id = parseInt(req.body.id)

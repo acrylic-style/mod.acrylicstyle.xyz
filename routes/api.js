@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { validateAndGetSession, readableTime, getUpdateTime, getBeatmapSet, pushEvent, getIPAddress } = require('../src/util')
+const { validateAndGetSession, readableTime, getUpdateTime, getBeatmapSet, pushEvent, getIPAddress, pushDiscordWebhook } = require('../src/util')
 const sql = require('../src/sql')
 const { queueBeatmapSetUpdate } = require ('../src/backgroundTask')
 const config = require('../src/config')
@@ -108,7 +108,7 @@ router.post('/queue/submit', async (req, res) => {
     const comment = req.body['comment'] !== null ? req.body['comment'].toString() : null
     if (comment && comment.length > 255) return res.status(400).send({ error: 'invalid_params' })
     res.startTime('fetch_user', 'Fetch user data')
-    const user = await sql.findOne("SELECT `username`, `last_submit`, `group`, `mod_queue_banned`, `mod_queue_banned_reason` FROM users WHERE id = ?", session.user_id)
+    const user = await sql.findOne("SELECT * FROM users WHERE id = ?", session.user_id)
     res.endTime('fetch_user')
     if (!user) return res.status(401).send({ error: 'login_required' })
     if (await config.requests.getStatus() === 'closed' && user.group !== 'modder' && user.group !== 'admin') return res.status(400).send({ error: 'closed' })
@@ -137,6 +137,8 @@ router.post('/queue/submit', async (req, res) => {
     await sql.execute("UPDATE users SET last_submit = now() WHERE id = ?", session.user_id)
     await pushEvent(requestId, 'submitted', session.user_id, `<b><a href="https://osu.ppy.sh/users/${user.id}">${user.username}</a></b> submitted the mod request (<a href="https://osu.ppy.sh/beatmapsets/${beatmapSetId}">${beatmapSet.artist} - ${beatmapSet.title}</a>).`)
     if (comment) await pushEvent(requestId, 'comment-by-mapper', session.user_id, `<b><a href="https://osu.ppy.sh/users/${user.id}">${user.username}</a></b> (mapper) updated the comment (<em>${comment}</em>).`)
+    pushDiscordWebhook('New mod request submitted', `New mod request submitted by [${user.username}](https://osu.ppy.sh/users/${user.id})\n\n**Beatmap**: [${beatmapSet.artist} - ${beatmapSet.title}](https://osu.ppy.sh/beatmapsets/${beatmapSetId})\n\n[Modding Queue](${process.env.APP_URL}/queue)`, '00ff00')
+    if (comment) pushDiscordWebhook('Comment from mapper', `[${user.username}](https://osu.ppy.sh/users/${user.id}) updated the mapper's comment on [${beatmapSet.artist} - ${beatmapSet.title}](https://osu.ppy.sh/beatmapsets/${beatmapSetId}): \`${comment}\`\n\n[Modding Queue](${process.env.APP_URL}/queue)`)
     res.send({ message: 'accepted' })
 })
 
@@ -158,23 +160,26 @@ router.post('/queue/edit_comment', async (req, res) => {
     if (req.body['comment'] === null || typeof req.body['comment'] === 'undefined') return res.status(400).send({ error: 'invalid_params' })
     const comment = req.body['comment'].toString()
     if (comment.length > 255) return res.status(400).send({ error: 'invalid_params' })
-    res.startTime('fetch_user', 'Fetch user data')
+    res.startTime('fetch', 'Fetch mod request related data')
     const user = await sql.findOne('SELECT `id`, `username`, `group` FROM users WHERE id = ?', session.user_id)
-    res.endTime('fetch_user')
-    res.startTime('fetch_request', 'Fetch mod request data')
-    const request = await sql.findOne('SELECT `user_id` FROM requests WHERE id = ?', requestId)
-    res.endTime('fetch_request')
+    const request = await sql.findOne('SELECT `user_id`, `beatmapset_id` FROM requests WHERE id = ?', requestId)
+    if (!request || !user) return res.send500(new Error('Could not fetch request or user data'))
+    const beatmapSet = await sql.findOne('SELECT * FROM beatmaps WHERE beatmapset_id = ?', request.beatmapset_id)
+    if (!beatmapSet) return res.send500(new Error('Could not fetch beatmapset data'))
+    res.endTime('fetch')
     if (type === 'edit_mapper') {
-        if (request.user_id !== user.id) return res.status(403).send({ error: 'insufficient_permission' })
+        if (request.user_id !== user.id && user.group !== 'admin') return res.status(403).send({ error: 'insufficient_permission' })
         res.startTime('update', 'Update data')
         await sql.execute('UPDATE requests SET comment_by_mapper = ? WHERE id = ?', comment, requestId)
         await pushEvent(requestId, 'comment-by-mapper', user.id, `<b><a href="https://osu.ppy.sh/users/${user.id}">${user.username}</a></b> (mapper) updated the comment (<em>${comment}</em>).`)
+        pushDiscordWebhook('Comment from mapper', `[${user.username}](https://osu.ppy.sh/users/${user.id}) updated the mapper's comment on [${beatmapSet.artist} - ${beatmapSet.title}](https://osu.ppy.sh/beatmapsets/${beatmapSet.beatmapset_id}): \`${comment}\`\n\n[Modding Queue](${process.env.APP_URL}/queue)`)
         res.endTime('update')
     } else {
         if (user.group !== 'modder' && user.group !== 'admin') return res.status(403).send({ error: 'insufficient_permission' })
         res.startTime('update', 'Update data')
         await sql.execute('UPDATE requests SET comment_by_modder = ? WHERE id = ?', comment, requestId)
         await pushEvent(requestId, 'comment-by-modder', user.id, `<b><a href="https://osu.ppy.sh/users/${user.id}">${user.username}</a></b> (modder) updated the comment (<em>${comment}</em>).`)
+        pushDiscordWebhook('Comment from mapper', `[${user.username}](https://osu.ppy.sh/users/${user.id}) updated the modder's comment on [${beatmapSet.artist} - ${beatmapSet.title}](https://osu.ppy.sh/beatmapsets/${beatmapSet.beatmapset_id}): \`${comment}\`\n\n[Modding Queue](${process.env.APP_URL}/queue)`)
         res.endTime('update')
     }
     res.send({ message: 'accepted' })
@@ -192,15 +197,16 @@ router.post('/queue/update_status', async (req, res) => {
         return res.status(400).send({ error: "invalid_params" });
     const comment = req.body.comment ? req.body['comment'].toString() : ''
     if (comment.length > 255) return res.status(400).send({ error: 'invalid_params' })
-    res.startTime('fetch_user', 'Fetch user data')
+    res.startTime('fetch', 'Fetch')
     const user = await sql.findOne('SELECT `id`, `username`, `group` FROM users WHERE id = ?', session.user_id)
-    res.endTime('fetch_user')
-    res.startTime('fetch_req', 'Fetch user data')
-    const request = await sql.findOne('SELECT `status` FROM requests WHERE id = ?', requestId)
+    if (!user) return res.send500(new Error(`could not find user by id ${session.user_id}.`))
+    const request = await sql.findOne('SELECT `status`, `beatmapset_id` FROM requests WHERE id = ?', requestId)
     if (!request) return res.status(404).send({ error: 'not_found' })
+    const beatmapSet = await sql.findOne('SELECT * FROM beatmaps WHERE beatmapset_id = ?', request.beatmapset_id)
+    if (!beatmapSet) return res.send500(new Error(`Could not find beatmapset by id ${request.beatmapset_id}`))
     // current status
     const { status } = request
-    res.endTime('fetch_req')
+    res.endTime('fetch')
     if (user.group !== 'modder' && user.group !== 'admin') return res.status(403).send({ error: 'insufficient_permission' })
     let evType = null
     let newStatus = null
@@ -209,18 +215,22 @@ router.post('/queue/update_status', async (req, res) => {
         evType = 'approved'
         newStatus = 'pending'
         desc = 'Approved by ? and is now waiting for modding.'
+        pushDiscordWebhook('Mod request approved', `[${beatmapSet.artist} - ${beatmapSet.title}](https://osu.ppy.sh/beatmapsets/${beatmapSet.beatmapset_id}) was **approved** by [${user.username}](https://osu.ppy.sh/users/${user.id})${comment ? '\nComment: `' + comment + '`' : ''}\n\n[Modding Queue](${process.env.APP_URL}/queue)`, '00ff00')
     } else if (type === 'reject' && status !== 'done' && status !== 'rejected') {
         evType = 'rejected'
         newStatus = 'rejected'
         desc = 'Rejected by ?.'
+        pushDiscordWebhook('Mod request rejected', `[${beatmapSet.artist} - ${beatmapSet.title}](https://osu.ppy.sh/beatmapsets/${beatmapSet.beatmapset_id}) was **rejected** by [${user.username}](https://osu.ppy.sh/users/${user.id})${comment ? '\nComment: `' + comment + '`' : ''}\n\n[Modding Queue](${process.env.APP_URL}/queue)`, 'ff0000')
     } else if (type === 'done' && status === 'pending') {
         evType = 'finished'
         newStatus = 'done'
         desc = 'Marked as finished by ?.'
+        pushDiscordWebhook('Mod request finished', `[${beatmapSet.artist} - ${beatmapSet.title}](https://osu.ppy.sh/beatmapsets/${beatmapSet.beatmapset_id}) was **marked as finished** by [${user.username}](https://osu.ppy.sh/users/${user.id})${comment ? '\nComment: `' + comment + '`' : ''}\n\n[Modding Queue](${process.env.APP_URL}/queue)`, '00ff00')
     } else if (type === 'unapprove' && (status === 'pending' || status === 'rejected' || status === 'done')) {
         evType = 'unapproved'
         newStatus = 'submitted'
         desc = 'Unapproved by ?.'
+        pushDiscordWebhook('Mod request approved', `[${beatmapSet.artist} - ${beatmapSet.title}](https://osu.ppy.sh/beatmapsets/${beatmapSet.beatmapset_id}) was **unapproved** by [${user.username}](https://osu.ppy.sh/users/${user.id})${comment ? '\nComment: `' + comment + '`' : ''}\n\n[Modding Queue](${process.env.APP_URL}/queue)`, 'ff0000')
     } else {
         return res.status(400).send({ error: 'invalid_params' })
     }

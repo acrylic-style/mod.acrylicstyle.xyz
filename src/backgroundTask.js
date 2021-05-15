@@ -9,17 +9,27 @@ setAsyncInterval(async () => {
     const task = tasks.shift()
     if (!task) return
     try {
-        await task()
+        const t = task()
+        if (t instanceof Promise) {
+            await t.catch(e => {
+                debug('Error executing async task')
+                debug(e.stack || e)
+            })
+        }
     } catch (e) {
         debug('Error executing task')
-        console.error(e)
+        debug(e.stack || e)
     }
-}, 3000)
+}, 2000)
 
 debug('Initialized background task executor')
 
 module.exports = {
     tasks,
+    queue: (task) => {
+        if (typeof task !== 'function') throw new Error(`u wot (${typeof task})`)
+        tasks.push(task)
+    },
     queueBeatmapSetUpdate: (token, beatmapSetId = -1) => {
         if (!token || beatmapSetId === -1) return
         if (queuedBeatmapSetUpdates.includes(beatmapSetId)) return

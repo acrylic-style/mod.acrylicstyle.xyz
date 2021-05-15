@@ -192,6 +192,7 @@ app.use((req, res, next) => {
   next()
 })
 
+// restrict access for /admin routes
 app.use('/admin', async (req, res, next) => {
   const session = req.session = validateAndGetSession(req)
   if (!session) return res.send401()
@@ -204,6 +205,7 @@ app.use('/admin', async (req, res, next) => {
 
 let apiRequests = {}
 
+// more lenient request limit
 const tooManyRequests = [
     '/config',
     '/me',
