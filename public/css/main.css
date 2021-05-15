@@ -119,6 +119,19 @@ h2 {
 .mapper {
   font-size: 85%;
   font-weight: 400;
+  display: flex;
+  align-items: center;
+}
+
+.mapper-link {
+  margin-left: 3px;
+}
+
+.manage-user {
+  font-size: 15px;
+  margin-left: 5px;
+  color: #437dff;
+  padding: 2px;
 }
 
 .text-truncate {
@@ -404,6 +417,10 @@ html {
   font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
 }
 
-.comic-sans, html {
+.comic-sans {
   font-family: 'Comic Sans', 'Comic Sans MS', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.modal {
+  color: #000;
 }

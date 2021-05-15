@@ -306,6 +306,7 @@ async function renderRequestCard(e) {
     const mapperText = document.createElement('span')
     mapperText.textContent = 'mapped by '
     const mapperBold = document.createElement('b')
+    mapperBold.classList.add('mapper-link')
     const mapperLink = document.createElement('a')
     mapperLink.href = `https://osu.ppy.sh/users/${e.beatmapset.user.id}`
     mapperLink.rel = 'noopener'
@@ -320,6 +321,16 @@ async function renderRequestCard(e) {
     if (e.beatmapset.user.profile_colour) {
         mapperLink.style.color = e.beatmapset.user.profile_colour // custom color for player who has custom color (eg. NAT, BN, GMT)
     }
+    const userManageLink = document.createElement('a')
+    userManageLink.href = `/admin/users/${e.beatmapset.user.id}`
+    userManageLink.rel = 'noopener'
+    userManageLink.target = '_blank'
+    userManageLink.style.height = '15px'
+    userManageLink.addEventListener('click', ev => ev.shouldFire = false)
+    const userManage = document.createElement('i')
+    userManage.classList.add('manage-user', 'material-icons', 'clickable-icon')
+    userManage.textContent = 'build'
+    userManageLink.appendChild(userManage)
 
     // star rating
     const srSpread = document.createElement('span')
@@ -614,6 +625,7 @@ async function renderRequestCard(e) {
     mapperBold.appendChild(mapperLink)
     mapperContainer.appendChild(mapperText)
     mapperContainer.appendChild(mapperBold)
+    if (me && me.group === 'admin') mapperContainer.appendChild(userManageLink)
     titleContainer.appendChild(title)
     cardBody.appendChild(titleContainer)
     cardBody.appendChild(mapperContainer)

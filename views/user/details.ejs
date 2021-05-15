@@ -7,12 +7,67 @@
     <body>
         <%- include('../body-header'); %>
         <div class="container" style="margin-top: 1%;">
-            <div class="row">
+            <div class="card-container row">
+                <div class="col s12">
+                    <section class="not-flexing-card">
+                        <h2>User details of <%- user.username %> <small>from <%- user.country_name %></small></h2>
+                        <div class="not-flexing-card z-depth-5">
+                            <h2>Group</h2>
+                            <p>
+                                <label>
+                                    <input id="group-user" name="group" type="radio" value="user" />
+                                    <span>User</span>
+                                </label>
+                            </p>
+                            <p>
+                                <label>
+                                    <input id="group-modder" name="group" type="radio" value="modder" />
+                                    <span>Modder</span>
+                                </label>
+                            </p>
+                            <p>
+                                <label>
+                                    <input id="group-admin" name="group" type="radio" value="admin" />
+                                    <span>Admin</span>
+                                </label>
+                            </p>
+                        </div>
+                        <div class="not-flexing-card z-depth-5">
+                            <div class="switch">
+                                Banned from mod request
+                                <label>
+                                    No
+                                    <input type="checkbox" id="banned" onclick="toggleBanned()">
+                                    <span class="lever"></span>
+                                    Yes
+                                </label>
+                            </div>
+                            <div class="input-field s12 hidden" id="banned-reason-container">
+                                <input id="banned-reason" type="text" maxlength="255" />
+                                <label for="banned-reason">Banned reason</label>
+                            </div>
+                        </div>
+                        <button class="btn green waves-effect" onclick="saveUser()">Save</button>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <div id="admin-self-warning" class="modal">
+            <div class="modal-content">
+                <h4>Warning!</h4>
+                <p>You are about to remove yourself from admin group!</p>
+                <p>This means you will not be able to access admin panel until someone gives you admin group again!</p>
+                <p>Are you sure want to do that?</p>
+                <p>(Changes will not be saved until you click 'Save')</p>
+            </div>
+            <div class="modal-footer">
+                <a class="modal-close btn waves-effect green" id="modal-no">No</a>
+                <a class="modal-close btn waves-effect red" id="modal-yes">Yes</a>
             </div>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/@materializecss/materialize@1.1.0-alpha/dist/js/materialize.min.js"></script>
         <script type="text/javascript" src="/scripts/main.js"></script>
         <script type="application/json" id="json-user"><%- JSON.stringify(user) %></script>
-        <script type="text/javascript" src="/scripts/admin/request/details.js"></script>
+        <script type="text/javascript" src="/scripts/admin/user/details.js"></script>
     </body>
 </html>
