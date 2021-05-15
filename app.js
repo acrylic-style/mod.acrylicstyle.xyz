@@ -151,6 +151,20 @@ app.use(serverTiming({
 }))
 
 app.use((req, res, next) => {
+  res.send401 = () => {
+    if (req.headers['accept'] === 'application/json') {
+      res.status(401).send({ error: 'unauthorized' })
+    } else {
+      res.sendFile(path.resolve('static/401.html'))
+    }
+  }
+  res.send403 = () => {
+    if (req.headers['accept'] === 'application/json') {
+      res.status(403).send({ error: 'forbidden' })
+    } else {
+      res.sendFile(path.resolve('static/403.html'))
+    }
+  }
   res.send404 = () => {
     if (req.headers['accept'] === 'application/json') {
       res.status(404).send({ error: 'not_found' })
@@ -180,10 +194,10 @@ app.use((req, res, next) => {
 
 app.use('/admin', async (req, res, next) => {
   const session = req.session = validateAndGetSession(req)
-  if (!session) return res.status(401).send({ error: 'unauthorized' })
+  if (!session) return res.send401()
   const user = req.user = await getUser(session.access_token, session.user_id)
   if (!user || user.group !== 'admin') {
-    return res.status(401).send({ error: 'unauthorized' })
+    return res.send403()
   }
   next()
 })
