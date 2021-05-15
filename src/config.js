@@ -4,7 +4,6 @@ const git = require('simple-git')()
 let cachedConfig = null
 
 const set = async (key, value) => {
-    cachedConfig = null
     const val = JSON.stringify(value)
     const connection = await sql.getConnection()
     const res = await sql.findOneWithConnection(connection, 'SELECT `key` FROM config WHERE `key` = ? LIMIT 1', key)
@@ -23,6 +22,7 @@ const set = async (key, value) => {
             val,
         )
     }
+    cachedConfig = null
     connection.release()
 }
 
@@ -38,7 +38,6 @@ module.exports = {
         // async!
         getStatus: () => get('requests.status'),
         setRules: async (rules) => {
-            cachedConfig = null
             const connection = await sql.getConnection()
             // delete all custom rules
             await sql.queryWithConnection(connection, 'DELETE FROM `config` WHERE `key` = "requests.rules"')
@@ -47,6 +46,7 @@ module.exports = {
             const values = '("requests.rules", ?)' + ', ("requests.rules", ?)'.repeat(rules.length - 1)
             // insert multiple rows at once
             await sql.queryWithConnection(connection, `INSERT INTO \`config\` (\`key\`, \`value\`) VALUES ${values}`, ...rules.map(r => JSON.stringify(r)))
+            cachedConfig = null
             connection.release()
         },
         getRules: () => sql.findAll('SELECT `value` FROM `config` WHERE `key` = "requests.rules"').then(res => res.map(e => JSON.parse(e['value']))),
@@ -57,6 +57,26 @@ module.exports = {
             return await set('requests.max_difficulty', difficulty)
         },
         getMaxDifficulty: () => get('requests.max_difficulty'),
+    },
+    webhook: {
+        addDiscordWebhookURL: async (url) => {
+            const connection = await sql.getConnection()
+            // look for dupes, return if there's any
+            if (await sql.findOneWithConnection(connection, 'SELECT `key` FROM `config` WHERE `key` = "private.webhook_discord", `value` = ?', JSON.stringify(url))) return
+            await sql.queryWithConnection(connection, 'INSERT INTO `config` (`key`, `value`) VALUES ("private.webhook_discord", ?)', JSON.stringify(url))
+            cachedConfig = null
+            connection.release()
+        },
+        setDiscordWebhookURLs: async (urls) => {
+            const connection = await sql.getConnection()
+            await sql.queryWithConnection(connection, 'DELETE FROM `config` WHERE `key` = "private.webhook_discord"')
+            if (urls.length === 0) return
+            const values = '("private.webhook_discord", ?)' + ', ("private.webhook_discord", ?)'.repeat(urls.length - 1)
+            await sql.queryWithConnection(connection, `INSERT INTO \`config\` (\`key\`, \`value\`) VALUES ${values}`, ...urls.map(r => JSON.stringify(r)))
+            cachedConfig = null
+            connection.release()
+        },
+        getDiscordWebhookURLs: () => sql.findAll('SELECT `value` FROM `config` WHERE `key` = "private.webhook_discord"').then(res => res.map(e => JSON.parse(e['value']))),
     },
     getConfig: async (includeGit) => {
         if (cachedConfig) return cachedConfig
@@ -73,6 +93,7 @@ module.exports = {
         ]
         config.forEach(e => {
             const { key } = e
+            if (key.startsWith('private.')) return // don't include private configurations
             const value = JSON.parse(e.value)
             let o = obj
             const array = key.split('.')
