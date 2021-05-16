@@ -165,7 +165,7 @@ function saveRules() {
             return
         }
         if (maxDiffElement.value !== '') {
-            maxDifficultyRuleTextElement.textContent = `No maps that has ${(Math.round(parseFloat(maxDiffElement.value) * 100) / 100)}+ star rating`
+            maxDifficultyRuleTextElement.textContent = `No ${(Math.round(parseFloat(maxDiffElement.value) * 100) / 100)}+ star rating maps`
         }
         toast('Saved rules!')
     })
