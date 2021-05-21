@@ -42,6 +42,13 @@
             </div>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/@materializecss/materialize@1.1.0-alpha/dist/js/materialize.min.js"></script>
+        <script type="text/javascript">
+            if (!window.fetch) {
+                var __outdated_browser_warning_text = "DO NOT USE INTERNET EXPLORER EVER EVER EVER EVER EVER EVER EVER EVER EVER EVER.";
+                M.toast({ unsafeHTML: __outdated_browser_warning_text });
+                console.log("Notification: " + __outdated_browser_warning_text);
+            }
+        </script>
         <script type="text/javascript" src="/scripts/main.js"></script>
     </body>
 </html>
