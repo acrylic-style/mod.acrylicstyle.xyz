@@ -7,7 +7,7 @@ const redirectUri = `${process.env.APP_URL}/login/callback`
 const { generateSecureRandomString, sleep, sessions, validateAndGetSession, getIPAddress } = require('../src/util')
 const osu = require('../src/osu')
 const sql = require('../src/sql')
-const knownTokens = []
+let knownTokens = []
 
 router.get('/login', (req, res) => {
   res.set('Cache-Control', 'no-store')
@@ -35,6 +35,9 @@ router.get('/login/callback', (req, res) => {
   if (!knownTokens.includes(state)) {
     res.redirect(`${process.env.APP_URL}/${redirectTo}?authstate=invalid_csrf_token`)
     return
+  } else {
+    // remove token
+    knownTokens = knownTokens.filter(token => token !== state)
   }
   const code = req.query['code']
   if (!code) {
