@@ -144,6 +144,7 @@ const getUser = async (token, userId = 0) => {
         data.profile_colour
     )
     return {
+        ...user,
         id: data.id,
         username: data.username,
         country_code: data.country?.code || 'XX',
