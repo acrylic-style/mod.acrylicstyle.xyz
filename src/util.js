@@ -4,6 +4,7 @@ const sql = require('./sql')
 const config = require('./config')
 const { queueBeatmapSetUpdate, queue } = require('./backgroundTask')
 const fetch = require('node-fetch')
+const debug = require('debug')('mod.acrylicstyle.xyz:util')
 
 const sessions = {}
 
@@ -129,8 +130,8 @@ const getUser = async (token, userId = 0) => {
     if (user && user['last_update'].getTime() + 1000 * 60 * 60 * 24 * 30 > Date.now()) return user
     const data = await osu(token).getUser(userId)
     if (data.status_code !== 200) {
-        // no luck
-        return null
+        if (process.env.APP_ENV === 'development') debug('osu!api returned non-ok response: ', data)
+        return user
     }
     await sql.execute(
         "INSERT IGNORE INTO users (`id`, `username`, `country_code`, `country_name`, `avatar_url`, `title`, `profile_colour`) VALUES (?, ?, ?, ?, ?, ?, ?)",
